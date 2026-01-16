@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../core/app_colors.dart';
 import '../core/app_texts.dart';
@@ -33,8 +34,17 @@ class SplashView extends StatelessWidget {
               style: AppTheme.splashTitle,
             ),
             const SizedBox(height: 24),
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.portalOlive),
+            Shimmer.fromColors(
+              baseColor: AppColors.portalOlive.withOpacity(0.3),
+              highlightColor: AppColors.portalOlive,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.portalOlive,
+                  shape: BoxShape.circle,
+                ),
+              ),
             ),
           ],
         ),

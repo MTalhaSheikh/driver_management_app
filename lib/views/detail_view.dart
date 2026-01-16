@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../controllers/trip_info_controller.dart';
+import '../controllers/detail_controller.dart';
 import '../core/app_colors.dart';
 import '../core/app_theme.dart';
-import '../views/widgets/passenger_contact_card.dart';
-import '../views/widgets/slide_action_button.dart';
-import '../views/widgets/trip_map_preview.dart';
-import '../views/widgets/trip_points_card.dart';
+import 'widgets/trip_map_preview.dart';
+import 'widgets/trip_points_card.dart';
+import 'widgets/passenger_contact_card.dart';
 
-class TripInfoView extends StatelessWidget {
-  const TripInfoView({super.key});
+class DetailView extends StatelessWidget {
+  const DetailView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final TripInfoController controller = Get.find<TripInfoController>();
+    final DetailController controller = Get.find<DetailController>();
 
     return Scaffold(
       backgroundColor: AppColors.screenBackground,
@@ -36,7 +35,7 @@ class TripInfoView extends StatelessWidget {
                     ),
                     const Spacer(),
                     Text(
-                      controller.stageTitle,
+                      'Trip Details',
                       style: AppTheme.sectionTitle,
                     ),
                     const Spacer(),
@@ -50,15 +49,20 @@ class TripInfoView extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Map preview
                         TripMapPreview(
                           onExpand: () => Get.toNamed('/map'),
                         ),
                         const SizedBox(height: 34),
+
+                        // Date and time
                         Text(
                           controller.scheduledLabel.value,
                           style: AppTheme.tripTime,
                         ),
                         const SizedBox(height: 18),
+
+                        // Trip points card
                         TripPointsCard(
                           pickupTitle: controller.pickupTitle.value,
                           pickupSubtitle: controller.pickupSubtitle.value,
@@ -68,26 +72,21 @@ class TripInfoView extends StatelessWidget {
                           mins: controller.durationMins.value,
                         ),
                         const SizedBox(height: 27),
+
+                        // Driver contact card
                         PassengerContactCard(
-                          name: controller.passengerName.value,
-                          phone: controller.passengerPhone.value,
-                          onChat: () {},
-                          onCall: () {},
+                          name: controller.driverName.value,
+                          phone: controller.driverPhone.value,
+                          onChat: () {
+                            // Handle chat action
+                          },
+                          onCall: () {
+                            // Handle call action
+                          },
                         ),
                         const SizedBox(height: 22),
                       ],
                     ),
-                  ),
-                ),
-
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: SlideActionButton(
-                    label: controller.stageTitle,
-                    leadingIcon: _stageIcon(controller.stage.value),
-                    onCompleted: () {
-                      controller.advanceStage();
-                    },
                   ),
                 ),
               ],
@@ -98,17 +97,3 @@ class TripInfoView extends StatelessWidget {
     );
   }
 }
-
-IconData _stageIcon(TripProgressStage stage) {
-  switch (stage) {
-    case TripProgressStage.onTheWay:
-      return Icons.directions_car_filled_outlined;
-    case TripProgressStage.pickPassenger:
-      return Icons.location_on_outlined;
-    case TripProgressStage.arrived:
-      return Icons.emoji_people_outlined;
-    case TripProgressStage.finishedRide:
-      return Icons.luggage_outlined;
-  }
-}
-

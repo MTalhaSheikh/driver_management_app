@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../controllers/login_controller.dart';
 import '../routes/app_routes.dart';
@@ -172,28 +173,32 @@ class _DriverLoginScreenState extends State<_DriverLoginScreen> {
                   elevation: 0,
                 ),
                 child: _controller.isLoading.value
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+                    ? Shimmer.fromColors(
+                        baseColor: Colors.white.withOpacity(0.3),
+                        highlightColor: Colors.white,
+                        child: Container(
+                          width: 100,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
                       )
                     : Stack(
                         alignment: Alignment.center,
                         children: const [
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Padding(
-                              padding: EdgeInsets.only(left: 18),
-                              child: Icon(
-                                Icons.chevron_right,
-                                color: Colors.white70,
-                                size: 24,
-                              ),
-                            ),
-                          ),
+                          // Align(
+                          //   alignment: Alignment.centerRight,
+                          //   child: Padding(
+                          //     padding: EdgeInsets.only(left: 18),
+                          //     child: Icon(
+                          //       Icons.chevron_right,
+                          //       color: Colors.white70,
+                          //       size: 24,
+                          //     ),
+                          //   ),
+                          // ),
                           Text(
                             AppTexts.login,
                             style: TextStyle(

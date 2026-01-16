@@ -6,6 +6,7 @@ class AppRoutes {
   static const String tripInfo = '/trip-info';
   static const String map = '/map';
   static const String profile = '/profile';
+  static const String detail = '/detail';
   
   // Add more routes as needed
   // static const String settings = '/settings';

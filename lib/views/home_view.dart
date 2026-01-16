@@ -121,7 +121,7 @@ class HomeView extends StatelessWidget {
                       return TripCard(
                         trip: trip,
                         highlighted: highlighted,
-                        onDetails: () => Get.toNamed('/map'),
+                        onDetails: () => Get.toNamed('/detail'),
                         onNavigate: () => Get.toNamed('/trip-info'),
                       );
                     },

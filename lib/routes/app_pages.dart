@@ -1,11 +1,13 @@
 import 'package:driver_management_app/routes/app_routes.dart';
 import 'package:get/get.dart';
 
+import '../bindings/detail_binding.dart';
 import '../bindings/home_binding.dart';
 import '../bindings/login_binding.dart';
 import '../bindings/map_binding.dart';
 import '../bindings/profile_binding.dart';
 import '../bindings/trip_info_binding.dart';
+import '../views/detail_view.dart';
 import '../views/home_view.dart';
 import '../views/login_view.dart';
 import '../views/map_view.dart';
@@ -45,6 +47,11 @@ class AppPages {
       name: AppRoutes.profile,
       page: () => const ProfileView(),
       binding: ProfileBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.detail,
+      page: () => const DetailView(),
+      binding: DetailBinding(),
     ),
   ];
 }

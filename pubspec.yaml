@@ -37,6 +37,21 @@ dependencies:
   
   # GetX for state management, routing, and dependency injection
   get: ^4.6.6
+  
+  # Google Maps for displaying maps
+  google_maps_flutter: ^2.5.0
+  
+  # Location services for getting current location
+  geolocator: ^11.0.0
+  
+  # Permission handling for location access
+  permission_handler: ^11.3.0
+  
+  # Google Fonts for Spline Sans
+  google_fonts: ^6.1.0
+  
+  # Shimmer animation for loading states
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:
