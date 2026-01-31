@@ -30,7 +30,7 @@ class SplashView extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              AppTexts.driverPortal,
+              AppTexts.limoGuy,
               style: AppTheme.splashTitle,
             ),
             const SizedBox(height: 24),

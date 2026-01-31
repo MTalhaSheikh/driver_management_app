@@ -81,7 +81,7 @@ class _DriverLoginScreenState extends State<_DriverLoginScreen> {
           ),
           const SizedBox(height: 24),
           Text(
-            AppTexts.driverPortal,
+            AppTexts.limoGuy,
             style: AppTheme.loginTitle,
           ),
           const SizedBox(height: 4),
@@ -172,33 +172,10 @@ class _DriverLoginScreenState extends State<_DriverLoginScreen> {
                   ),
                   elevation: 0,
                 ),
-                child: _controller.isLoading.value
-                    ? Shimmer.fromColors(
-                        baseColor: Colors.white.withOpacity(0.3),
-                        highlightColor: Colors.white,
-                        child: Container(
-                          width: 100,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      )
+                child: _controller.isLoading.value ? CircularProgressIndicator()
                     : Stack(
                         alignment: Alignment.center,
                         children: const [
-                          // Align(
-                          //   alignment: Alignment.centerRight,
-                          //   child: Padding(
-                          //     padding: EdgeInsets.only(left: 18),
-                          //     child: Icon(
-                          //       Icons.chevron_right,
-                          //       color: Colors.white70,
-                          //       size: 24,
-                          //     ),
-                          //   ),
-                          // ),
                           Text(
                             AppTexts.login,
                             style: TextStyle(
@@ -235,13 +212,6 @@ class _DriverLoginScreenState extends State<_DriverLoginScreen> {
                 ),
               ),
             ],
-          ),
-
-          const SizedBox(height: 12),
-          // Optional: keep this handy during development
-          TextButton(
-            onPressed: () => Get.offAllNamed(AppRoutes.home),
-            child: const Text('Skip for now'),
           ),
         ],
       ),

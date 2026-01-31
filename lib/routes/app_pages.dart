@@ -1,4 +1,4 @@
-import 'package:driver_management_app/routes/app_routes.dart';
+import 'package:limo_guy/routes/app_routes.dart';
 import 'package:get/get.dart';
 
 import '../bindings/detail_binding.dart';

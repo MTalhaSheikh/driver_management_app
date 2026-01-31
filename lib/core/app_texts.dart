@@ -1,7 +1,7 @@
 class AppTexts {
   AppTexts._();
 
-  static const String driverPortal = 'Driver Portal';
+  static const String limoGuy = 'Limo Guy';
   static const String signInSubtitle = 'Sign in to access your routes';
 
   static const String emailHint = 'Email address';

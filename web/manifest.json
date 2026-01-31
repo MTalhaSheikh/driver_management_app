@@ -1,6 +1,6 @@
 {
-    "name": "driver_management_app",
-    "short_name": "driver_management_app",
+    "name": "limo_guy",
+    "short_name": "limo_guy",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
