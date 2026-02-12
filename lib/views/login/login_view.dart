@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shimmer/shimmer.dart';
-
-import '../controllers/login_controller.dart';
-import '../routes/app_routes.dart';
-import '../core/app_colors.dart';
-import '../core/app_texts.dart';
-import '../core/app_theme.dart';
-import 'widgets/app_pill_text_field.dart';
+import 'package:limo_guy/controllers/login_controller.dart';
+import 'package:limo_guy/core/app_colors.dart';
+import 'package:limo_guy/core/app_texts.dart';
+import 'package:limo_guy/core/app_theme.dart';
+import 'package:limo_guy/views/widgets/app_pill_text_field.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -141,10 +138,13 @@ class _DriverLoginScreenState extends State<_DriverLoginScreen> {
                 ? const SizedBox.shrink()
                 : Align(
                     alignment: Alignment.centerLeft,
-                          child: Text(
-                            _controller.errorMessage.value,
-                            style: AppTheme.errorText,
-                          ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        _controller.errorMessage.value,
+                        style: AppTheme.errorText,
+                      ),
+                    ),
                   ),
           ),
 
@@ -167,24 +167,28 @@ class _DriverLoginScreenState extends State<_DriverLoginScreen> {
                       },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.portalOlive,
+                  disabledBackgroundColor: AppColors.portalOlive.withOpacity(0.6),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(32),
                   ),
                   elevation: 0,
                 ),
-                child: _controller.isLoading.value ? CircularProgressIndicator()
-                    : Stack(
-                        alignment: Alignment.center,
-                        children: const [
-                          Text(
-                            AppTexts.login,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
+                child: _controller.isLoading.value
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text(
+                        AppTexts.login,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
                       ),
               ),
             ),

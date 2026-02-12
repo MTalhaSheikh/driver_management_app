@@ -8,6 +8,7 @@ import '../../models/trip_model.dart';
 class TripCard extends StatelessWidget {
   final TripModel trip;
   final bool highlighted;
+  final bool showDateOnCard;
   final VoidCallback? onDetails;
   final VoidCallback? onNavigate;
 
@@ -15,13 +16,15 @@ class TripCard extends StatelessWidget {
     super.key,
     required this.trip,
     this.highlighted = false,
+    this.showDateOnCard = false,
     this.onDetails,
     this.onNavigate,
   });
 
   @override
   Widget build(BuildContext context) {
-    final statusUi = _statusUi(trip.status);
+    // Use trip.tripStatus (computed) to handle auto-promotion to in_progress
+    final statusUi = _statusUiFromEnum(trip.tripStatus);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -63,7 +66,7 @@ class TripCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            trip.timeLabel,
+            showDateOnCard ? trip.scheduledLabel : trip.timeLabel,
             style: AppTheme.tripTime,
           ),
           const SizedBox(height: 12),
@@ -86,11 +89,35 @@ class TripCard extends StatelessWidget {
           const Divider(color: AppColors.divider, height: 24),
           Row(
             children: [
-              Text(
-                trip.passengerName,
-                style: AppTheme.passengerName,
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.note_outlined,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        trip.displayNotes,
+                        style: AppTheme.passengerName.copyWith(
+                          fontSize: 13,
+                          fontStyle: trip.notes == null || trip.notes!.isEmpty 
+                            ? FontStyle.italic 
+                            : FontStyle.normal,
+                          color: trip.notes == null || trip.notes!.isEmpty
+                            ? AppColors.textSecondary
+                            : AppColors.textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               _ActionButton(
                 label: highlighted ? AppTexts.navigate : AppTexts.details,
                 icon: highlighted ? Icons.navigation_outlined : null,
@@ -155,8 +182,8 @@ class _ActionButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(22),
       onTap: onTap,
       child: Container(
-          height: 36,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           color: filled ? AppColors.portalOlive : const Color(0xFFF3F4F6),
           borderRadius: BorderRadius.circular(22),
@@ -231,11 +258,13 @@ class _StopRow extends StatelessWidget {
                 title,
                 style: AppTheme.locationTitle,
               ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: AppTheme.locationSubtitle,
-              ),
+              if (subtitle.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: AppTheme.locationSubtitle,
+                ),
+              ],
             ],
           ),
         ),
@@ -308,7 +337,61 @@ class _StatusUi {
   });
 }
 
-_StatusUi _statusUi(TripStatus status) {
+/// Map API status values to UI
+_StatusUi _statusUi(String status) {
+  // Convert to lowercase for case-insensitive matching
+  final statusLower = status.toLowerCase();
+  
+  switch (statusLower) {
+    case 'in_progress':
+    case 'inprogress':
+      return const _StatusUi(
+        label: AppTexts.inProgress,
+        bg: AppColors.statusInProgressBg,
+        text: AppColors.textPrimary,
+        dot: true,
+        dotColor: AppColors.statusInProgressDot,
+      );
+    case 'pending':
+    case 'assigned':
+      return const _StatusUi(
+        label: AppTexts.pending,
+        bg: AppColors.statusPendingBg,
+        text: AppColors.statusPendingText,
+        dot: false,
+        dotColor: Colors.transparent,
+      );
+    case 'completed':
+      return const _StatusUi(
+        label: AppTexts.completed,
+        bg: AppColors.statusCompletedBg,
+        text: AppColors.statusCompletedText,
+        dot: false,
+        dotColor: Colors.transparent,
+      );
+    case 'cancelled':
+    case 'canceled':
+      return const _StatusUi(
+        label: AppTexts.canceled,
+        bg: AppColors.statusCanceledBg,
+        text: AppColors.statusCanceledText,
+        dot: false,
+        dotColor: Colors.transparent,
+      );
+    default:
+      // For any other status, show it as-is
+      return _StatusUi(
+        label: status,
+        bg: Colors.grey.shade200,
+        text: Colors.black87,
+        dot: false,
+        dotColor: Colors.transparent,
+      );
+  }
+}
+
+/// Map TripStatus enum to UI
+_StatusUi _statusUiFromEnum(TripStatus status) {
   switch (status) {
     case TripStatus.inProgress:
       return const _StatusUi(
@@ -344,4 +427,3 @@ _StatusUi _statusUi(TripStatus status) {
       );
   }
 }
-

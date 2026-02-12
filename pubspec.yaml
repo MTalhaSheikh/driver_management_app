@@ -52,6 +52,9 @@ dependencies:
   
   # Shimmer animation for loading states
   shimmer: ^3.0.0
+  http: ^1.6.0
+  shared_preferences: ^2.5.4
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

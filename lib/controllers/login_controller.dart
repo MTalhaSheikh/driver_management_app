@@ -1,37 +1,157 @@
 import 'package:get/get.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/api_service.dart';
 import '../routes/app_routes.dart';
 
 class LoginController extends GetxController {
-  final RxBool isLoading = false.obs;
-  final RxString email = ''.obs;
-  final RxString password = ''.obs;
-  final RxString errorMessage = ''.obs;
+  final ApiService _apiService = ApiService();
+  
+  // Observable variables
+  var email = ''.obs;
+  var password = ''.obs;
+  var isLoading = false.obs;
+  var errorMessage = ''.obs;
+  
+  // Store user data
+  var driverId = 0.obs;
+  var driverName = ''.obs;
+  var driverPhone = ''.obs;
+  var authToken = ''.obs;
 
+  @override
+  void onInit() {
+    super.onInit();
+    _checkSavedCredentials();
+  }
+
+  /// Check if user is already logged in
+  Future<void> _checkSavedCredentials() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedToken = prefs.getString('auth_token');
+      
+      if (savedToken != null && savedToken.isNotEmpty) {
+        authToken.value = savedToken;
+        driverId.value = prefs.getInt('driver_id') ?? 0;
+        driverName.value = prefs.getString('driver_name') ?? '';
+        driverPhone.value = prefs.getString('driver_phone') ?? '';
+        
+        // Navigate to home if already logged in
+        Get.offAllNamed(AppRoutes.home);
+      }
+    } catch (e) {
+      print('Error checking saved credentials: $e');
+    }
+  }
+
+  /// Login function
   Future<void> login() async {
-    // Form-level validation happens in the view; keep a fallback here too.
-    if (!GetUtils.isEmail(email.value.trim())) {
-      errorMessage.value = 'Enter a valid email';
-      return;
-    }
-    if (password.value.trim().length < 6) {
-      errorMessage.value = 'Password must be at least 6 characters';
-      return;
-    }
+    if (isLoading.value) return;
 
     try {
       isLoading.value = true;
       errorMessage.value = '';
 
-      await Future.delayed(const Duration(seconds: 1));
+      // Call API
+      final response = await _apiService.login(
+        username: email.value.trim(),
+        password: password.value.trim(),
+      );
 
-      // TODO: Replace with real auth logic
-      Get.offAllNamed(AppRoutes.home);
+      if (response.success) {
+        // Save token and user data
+        authToken.value = response.token;
+        driverId.value = response.driver.id;
+        driverName.value = response.driver.name;
+        driverPhone.value = response.driver.phone;
+
+        // Persist to SharedPreferences
+        await _saveCredentials(response);
+
+        // Navigate to home
+        Get.offAllNamed(AppRoutes.home);
+        
+        // Show success message
+        Get.snackbar(
+          'Success',
+          'Welcome back, ${response.driver.name}!',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 2),
+        );
+      } else {
+        errorMessage.value = 'Login failed. Please try again.';
+      }
+    } on ApiException catch (e) {
+      errorMessage.value = e.message;
     } catch (e) {
-      errorMessage.value = 'Login failed: ${e.toString()}';
+      errorMessage.value = 'An unexpected error occurred. Please try again.';
+      print('Login error: $e');
     } finally {
       isLoading.value = false;
     }
   }
-}
 
+  /// Save credentials to SharedPreferences
+  Future<void> _saveCredentials(dynamic response) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('auth_token', authToken.value);
+      await prefs.setInt('driver_id', driverId.value);
+      await prefs.setString('driver_name', driverName.value);
+      await prefs.setString('driver_phone', driverPhone.value);
+    } catch (e) {
+      print('Error saving credentials: $e');
+    }
+  }
+
+  /// Logout function
+  Future<void> logout() async {
+    try {
+      isLoading.value = true;
+      
+      // Call logout API if user has a token
+      if (authToken.value.isNotEmpty) {
+        try {
+          await _apiService.logout(token: authToken.value);
+        } on ApiException catch (e) {
+          // Log the error but continue with local logout
+          print('Logout API error: ${e.message}');
+          // Still proceed with local cleanup even if API call fails
+        }
+      }
+      
+      // Clear SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      
+      // Clear observable values
+      email.value = '';
+      password.value = '';
+      authToken.value = '';
+      driverId.value = 0;
+      driverName.value = '';
+      driverPhone.value = '';
+      errorMessage.value = '';
+      
+      // Navigate to login
+      Get.offAllNamed(AppRoutes.login);
+      
+      // Show logout message
+      Get.snackbar(
+        'Logged Out',
+        'You have been successfully logged out',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      print('Error during logout: $e');
+      // Even if there's an error, try to navigate to login
+      Get.offAllNamed(AppRoutes.login);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// Check if user is authenticated
+  bool get isAuthenticated => authToken.value.isNotEmpty;
+}

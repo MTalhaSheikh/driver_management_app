@@ -1,0 +1,55 @@
+class LoginResponse {
+  final bool success;
+  final String token;
+  final Driver driver;
+
+  LoginResponse({
+    required this.success,
+    required this.token,
+    required this.driver,
+  });
+
+  factory LoginResponse.fromJson(Map<String, dynamic> json) {
+    return LoginResponse(
+      success: json['success'] ?? false,
+      token: json['token'] ?? '',
+      driver: Driver.fromJson(json['driver'] ?? {}),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'success': success,
+      'token': token,
+      'driver': driver.toJson(),
+    };
+  }
+}
+
+class Driver {
+  final int id;
+  final String name;
+  final String phone;
+
+  Driver({
+    required this.id,
+    required this.name,
+    required this.phone,
+  });
+
+  factory Driver.fromJson(Map<String, dynamic> json) {
+    return Driver(
+      id: json['id'] ?? 0,
+      name: json['name'] ?? '',
+      phone: json['phone'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'phone': phone,
+    };
+  }
+}
