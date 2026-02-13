@@ -85,6 +85,7 @@ class TripInfoView extends StatelessWidget {
                   child: SlideActionButton(
                     label: controller.stageTitle,
                     leadingIcon: _stageIcon(controller.stage.value),
+                    isLoading: controller.isUpdatingStatus.value,
                     onCompleted: () {
                       controller.advanceStage();
                     },
@@ -107,7 +108,7 @@ IconData _stageIcon(TripProgressStage stage) {
       return Icons.location_on_outlined;
     case TripProgressStage.arrived:
       return Icons.emoji_people_outlined;
-    case TripProgressStage.finishedRide:
+    case TripProgressStage.finishedTrip:
       return Icons.luggage_outlined;
   }
 }

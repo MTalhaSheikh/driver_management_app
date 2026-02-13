@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:limo_guy/controllers/home_controller.dart';
 
 import '../../core/app_colors.dart';
 import '../../core/app_theme.dart';
@@ -7,12 +10,14 @@ class SlideActionButton extends StatefulWidget {
   final String label;
   final IconData leadingIcon;
   final VoidCallback onCompleted;
+  final bool isLoading;
 
   const SlideActionButton({
     super.key,
     required this.label,
     required this.leadingIcon,
     required this.onCompleted,
+    this.isLoading = false,
   });
 
   @override
@@ -23,6 +28,7 @@ class _SlideActionButtonState extends State<SlideActionButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late Animation<double> _anim;
+  final HomeController homeController = Get.find<HomeController>();
 
   double _dragX = 0;
   double _maxDrag = 1;
@@ -84,50 +90,76 @@ class _SlideActionButtonState extends State<SlideActionButton>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // label + chevrons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(width: 12),
-                  const Icon(Icons.chevron_right, color: Colors.white70),
-                  const Icon(Icons.chevron_right, color: Colors.white54),
-                  const SizedBox(width: 10),
-                  Text(widget.label, style: AppTheme.buttonText.copyWith(fontSize: 18)),
-                  const SizedBox(width: 10),
-                  const Icon(Icons.chevron_right, color: Colors.white54),
-                  const Icon(Icons.chevron_right, color: Colors.white70),
-                  const SizedBox(width: 12),
-                ],
-              ),
+              // Center content: either loading indicator or label + chevrons
+              if (widget.isLoading)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(width: 8),
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Updating status...',
+                      style: AppTheme.buttonText.copyWith(fontSize: 16),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                )
+              else
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(width: 12),
+                    const Icon(Icons.chevron_right, color: Colors.white70),
+                    const Icon(Icons.chevron_right, color: Colors.white54),
+                    const SizedBox(width: 10),
+                    Text(widget.label, style: AppTheme.buttonText.copyWith(fontSize: 18)),
+                    const SizedBox(width: 10),
+                    const Icon(Icons.chevron_right, color: Colors.white54),
+                    const Icon(Icons.chevron_right, color: Colors.white70),
+                    const SizedBox(width: 12),
+                  ],
+                ),
 
               // draggable knob
               Positioned(
                 left: _dragX,
-                child: GestureDetector(
-                  onHorizontalDragUpdate: (details) {
-                    setState(() {
-                      _dragX = (_dragX + details.delta.dx).clamp(0, _maxDrag);
-                    });
-                  },
-                  onHorizontalDragEnd: (_) {
-                    final reached = _dragX >= _maxDrag * 0.82;
-                    if (reached) {
-                      widget.onCompleted();
-                      _animateTo(0);
-                    } else {
-                      _animateTo(0);
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Container(
-                      width: knobSize,
-                      height: knobSize,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
+                child: IgnorePointer(
+                  ignoring: widget.isLoading,
+                  child: GestureDetector(
+                    onHorizontalDragUpdate: (details) {
+                      setState(() {
+                        _dragX = (_dragX + details.delta.dx).clamp(0, _maxDrag);
+                      });
+                    },
+                    onHorizontalDragEnd: (_) async {
+                      final reached = _dragX >= _maxDrag * 0.82;
+                      if (reached) {
+                        widget.onCompleted();
+                        homeController.refreshTrips();
+                        _animateTo(0);
+                      } else {
+                        _animateTo(0);
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Container(
+                        width: knobSize,
+                        height: knobSize,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(widget.leadingIcon, color: AppColors.portalOlive),
                       ),
-                      child: Icon(widget.leadingIcon, color: AppColors.portalOlive),
                     ),
                   ),
                 ),

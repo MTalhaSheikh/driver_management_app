@@ -42,6 +42,6 @@ class AppTexts {
   static const String onTheWay = 'On The Way';
   static const String pickPassenger = 'Pick Passenger';
   static const String arrived = 'Arrived';
-  static const String finishedRide = 'Finished Ride';
+  static const String finishedTrip = 'Finished Ride';
 }
 

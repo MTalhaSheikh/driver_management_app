@@ -200,48 +200,48 @@ class ProfileView extends StatelessWidget {
                                       value: controller.vehicleNumber.value,
                                     ),
                                     
-                                    const SizedBox(height: 24),
+                                    // const SizedBox(height: 24),
                                     
-                                    // Active Status section
-                                    Container(
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.screenBackground,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Active Status',
-                                                  style: AppTheme.titleMedium,
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  controller.isActive.value
-                                                    ? 'Ready to receive trips'
-                                                    : 'Not accepting trips',
-                                                  style: AppTheme.bodyMedium.copyWith(
-                                                    color: controller.isActive.value
-                                                      ? Colors.green.shade700
-                                                      : Colors.grey.shade600,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Switch(
-                                            value: controller.isActive.value,
-                                            onChanged: (_) => controller.toggleActiveStatus(),
-                                            activeColor: AppColors.portalOlive,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+                                    // // Active Status section
+                                    // Container(
+                                    //   padding: const EdgeInsets.all(16),
+                                    //   decoration: BoxDecoration(
+                                    //     color: AppColors.screenBackground,
+                                    //     borderRadius: BorderRadius.circular(12),
+                                    //   ),
+                                    //   child: Row(
+                                    //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    //     children: [
+                                    //       Expanded(
+                                    //         child: Column(
+                                    //           crossAxisAlignment: CrossAxisAlignment.start,
+                                    //           children: [
+                                    //             Text(
+                                    //               'Active Status',
+                                    //               style: AppTheme.titleMedium,
+                                    //             ),
+                                    //             const SizedBox(height: 4),
+                                    //             Text(
+                                    //               controller.isActive.value
+                                    //                 ? 'Ready to receive trips'
+                                    //                 : 'Not accepting trips',
+                                    //               style: AppTheme.bodyMedium.copyWith(
+                                    //                 color: controller.isActive.value
+                                    //                   ? Colors.green.shade700
+                                    //                   : Colors.grey.shade600,
+                                    //               ),
+                                    //             ),
+                                    //           ],
+                                    //         ),
+                                    //       ),
+                                    //       Switch(
+                                    //         value: controller.isActive.value,
+                                    //         onChanged: (_) => controller.toggleActiveStatus(),
+                                    //         activeColor: AppColors.portalOlive,
+                                    //       ),
+                                    //     ],
+                                    //   ),
+                                    // ),
                                   ],
                                 ),
                               ),

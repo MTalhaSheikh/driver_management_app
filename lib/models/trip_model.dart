@@ -182,14 +182,26 @@ class TripModel {
     }
 
     switch (status.toLowerCase()) {
+      // Completed / finished states
       case 'completed':
+      case 'finished':
+      case 'finished_trip':
         return TripStatus.completed;
+
+      // Explicit "in progress" style states from API
+      case 'in_progress':
+      case 'inprogress':
+      case 'on_the_way':
+      case 'arrived':
+      case 'picked_up':
+        return TripStatus.inProgress;
+
+      // Canceled states
       case 'canceled':
       case 'cancelled':
         return TripStatus.canceled;
-      case 'in_progress':
-      case 'inprogress':
-        return TripStatus.inProgress;
+
+      // Explicit pending
       case 'pending':
       default:
         return TripStatus.pending;

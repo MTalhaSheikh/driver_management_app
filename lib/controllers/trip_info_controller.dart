@@ -1,17 +1,16 @@
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/trip_model.dart';
+import '../services/api_service.dart';
 
-enum TripProgressStage {
-  onTheWay,
-  arrived,
-  pickPassenger,
-  finishedRide,
-}
+enum TripProgressStage { onTheWay, arrived, pickPassenger, finishedTrip }
 
 class TripInfoController extends GetxController {
+  final ApiService _apiService = ApiService();
+
   // Trip data
   late final TripModel trip;
-  
+
   final RxString currentTripId = ''.obs;
   final RxString pickupTitle = ''.obs;
   final RxString pickupSubtitle = ''.obs;
@@ -25,10 +24,12 @@ class TripInfoController extends GetxController {
   final RxDouble distanceMiles = 0.0.obs;
   final RxInt durationMins = 0.obs;
   final RxString passengerName = ''.obs;
-  final RxString passengerPhone = ''.obs; // Will be added to API later
+  final RxString passengerPhone = ''.obs;
   final RxString notes = ''.obs;
 
+  // CRITICAL: Reactive stage that triggers UI updates
   final Rx<TripProgressStage> stage = TripProgressStage.onTheWay.obs;
+  final RxBool isUpdatingStatus = false.obs;
 
   @override
   void onInit() {
@@ -37,14 +38,13 @@ class TripInfoController extends GetxController {
   }
 
   /// Load trip data from arguments
-  void _loadTripData() {
+  void _loadTripData() async {
     try {
-      // Get trip from navigation arguments
       final args = Get.arguments;
-      
+
       if (args != null && args is TripModel) {
         trip = args;
-        
+
         // Update observables
         currentTripId.value = trip.id.toString();
         pickupTitle.value = trip.pickupTitle;
@@ -60,14 +60,11 @@ class TripInfoController extends GetxController {
         durationMins.value = trip.durationMins;
         passengerName.value = trip.displayPassengerName;
         notes.value = trip.displayNotes;
-        
-        // Use customer phone from API, fallback to placeholder if not available
         passengerPhone.value = trip.customerPhone ?? 'Phone not available';
-        
-        // Determine initial stage based on trip status
-        _setInitialStage();
+
+        // Load and set the initial stage
+        await _setInitialStage();
       } else {
-        // Fallback to default values if no trip data
         print('Warning: No trip data provided to TripInfoController');
         _setDefaultValues();
       }
@@ -77,20 +74,61 @@ class TripInfoController extends GetxController {
     }
   }
 
-  void _setInitialStage() {
-    // Set initial stage based on trip status
-    // When trip is in progress, start at "On the way" stage
-    switch (trip.tripStatus) {
-      case TripStatus.pending:
-      case TripStatus.inProgress:
-        // Start at first stage: On the way
-        stage.value = TripProgressStage.onTheWay;
-        break;
-      case TripStatus.completed:
-        stage.value = TripProgressStage.finishedRide;
-        break;
-      default:
-        stage.value = TripProgressStage.onTheWay;
+  Future<void> _setInitialStage() async {
+    try {
+      // Priority 1: Check locally saved status first (most recent)
+      final savedStatus = await _getSavedTripStatus(trip.id);
+
+      if (savedStatus != null && savedStatus.isNotEmpty) {
+        final savedStage = _stageFromStatus(savedStatus);
+        if (savedStage != null) {
+          print('✅ Loading saved status: $savedStatus -> $savedStage');
+          stage.value = savedStage;
+          update(); // Force UI update
+          return;
+        }
+      }
+
+      // Priority 2: Use raw API status string
+      if (trip.status.isNotEmpty) {
+        final fromRaw = _stageFromStatus(trip.status);
+        if (fromRaw != null) {
+          print('✅ Using API status: ${trip.status} -> $fromRaw');
+          stage.value = fromRaw;
+          await _saveTripStatusLocally(trip.id, trip.status);
+          update(); // Force UI update
+          return;
+        }
+      }
+
+      // Priority 3: Fallback to tripStatus enum
+      TripProgressStage fallbackStage;
+      String fallbackStatus;
+
+      switch (trip.tripStatus) {
+        case TripStatus.pending:
+        case TripStatus.inProgress:
+          fallbackStage = TripProgressStage.onTheWay;
+          fallbackStatus = 'on_the_way';
+          break;
+        case TripStatus.completed:
+          fallbackStage = TripProgressStage.finishedTrip;
+          fallbackStatus = 'completed';
+          break;
+        case TripStatus.canceled:
+          fallbackStage = TripProgressStage.onTheWay;
+          fallbackStatus = 'on_the_way';
+          break;
+      }
+
+      print('✅ Using fallback status: ${trip.tripStatus} -> $fallbackStage');
+      stage.value = fallbackStage;
+      await _saveTripStatusLocally(trip.id, fallbackStatus);
+      update(); // Force UI update
+    } catch (e) {
+      print('❌ Error in _setInitialStage: $e');
+      stage.value = TripProgressStage.onTheWay;
+      update();
     }
   }
 
@@ -112,34 +150,250 @@ class TripInfoController extends GetxController {
     switch (stage.value) {
       case TripProgressStage.onTheWay:
         return 'On The Way';
-      case TripProgressStage.pickPassenger:
-        return 'Pick Passenger';
       case TripProgressStage.arrived:
         return 'Arrived';
-      case TripProgressStage.finishedRide:
+      case TripProgressStage.pickPassenger:
+        return 'Pick Passenger';
+      case TripProgressStage.finishedTrip:
         return 'Finished Trip';
     }
   }
+/// Map API status string to local stage
+TripProgressStage? _stageFromStatus(String status) {
+  switch (status.toLowerCase().trim()) {
+    case 'on_the_way':
+    case 'ontheway':
+      return TripProgressStage.onTheWay;
+    case 'arrived':
+      return TripProgressStage.arrived;
+    case 'picked_up':
+    case 'pickedup':
+      return TripProgressStage.pickPassenger;
+    case 'finished_trip_pending': // NEW: local-only status
+      return TripProgressStage.finishedTrip;
+    case 'completed':
+    case 'finished':
+      return TripProgressStage.finishedTrip;
+    default:
+      print('⚠️ Unknown status: $status');
+      return null;
+  }
+}
 
-  void advanceStage() {
-    switch (stage.value) {
+  /// Get API status string for current stage
+  String _getApiStatusForStage(TripProgressStage stageValue) {
+    switch (stageValue) {
       case TripProgressStage.onTheWay:
-        // First: On the way → Second: Arrived
-        stage.value = TripProgressStage.arrived;
-        break;
+        return 'on_the_way';
       case TripProgressStage.arrived:
-        // Second: Arrived → Third: Pick Passenger
-        stage.value = TripProgressStage.pickPassenger;
-        break;
+        return 'arrived';
       case TripProgressStage.pickPassenger:
-        // Third: Pick Passenger → Fourth: Finished the trip
-        stage.value = TripProgressStage.finishedRide;
-        // TODO: Call API to mark trip as completed
-        break;
-      case TripProgressStage.finishedRide:
-        // Trip is complete, navigate back to home
-        Get.back();
-        break;
+        return 'picked_up';
+      case TripProgressStage.finishedTrip:
+        return 'completed';
     }
+  }
+
+  /// Get auth token from SharedPreferences
+  Future<String?> _getAuthToken() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('auth_token');
+    } catch (e) {
+      print('❌ Error getting auth token: $e');
+      return null;
+    }
+  }
+
+  /// Save trip status locally - CRITICAL for persistence
+  Future<void> _saveTripStatusLocally(int tripId, String status) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'trip_status_$tripId';
+      await prefs.setString(key, status);
+      print('💾 Saved locally: $key = $status');
+    } catch (e) {
+      print('❌ Error saving trip status locally: $e');
+    }
+  }
+
+  /// Get saved trip status from local storage
+  Future<String?> _getSavedTripStatus(int tripId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'trip_status_$tripId';
+      final status = prefs.getString(key);
+      if (status != null) {
+        print('📂 Retrieved locally: $key = $status');
+      }
+      return status;
+    } catch (e) {
+      print('❌ Error getting saved trip status: $e');
+      return null;
+    }
+  }
+
+  /// Clear saved trip status
+  Future<void> _clearTripStatus(int tripId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'trip_status_$tripId';
+      await prefs.remove(key);
+      print('🗑️ Cleared: $key');
+    } catch (e) {
+      print('❌ Error clearing trip status: $e');
+    }
+  }
+
+  /// Update trip status via API
+  Future<bool> _updateTripStatusApi(String status) async {
+    try {
+      final token = await _getAuthToken();
+      if (token == null) {
+        Get.snackbar(
+          'Error',
+          'Authentication token not found. Please login again.',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return false;
+      }
+
+      print('🔄 Updating trip ${trip.id} to status: $status');
+
+      final success = await _apiService.updateTripStatus(
+        token: token,
+        tripId: trip.id,
+        status: status,
+      );
+
+      if (success) {
+        print('✅ API update successful');
+        // CRITICAL: Save locally immediately after API success
+        await _saveTripStatusLocally(trip.id, status);
+      } else {
+        print('❌ API update failed');
+      }
+
+      return success;
+    } on ApiException catch (e) {
+      print('❌ API Exception: ${e.message}');
+      final message = e.statusCode == 0
+          ? 'Network error. Please check your connection and try again.'
+          : (e.message.isNotEmpty
+                ? e.message
+                : 'Failed to update trip status. Please try again.');
+      Get.snackbar(
+        'Error',
+        message,
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 3),
+      );
+      return false;
+    } catch (e) {
+      print('❌ Unexpected error: $e');
+      Get.snackbar(
+        'Error',
+        'Unexpected error. Please try again.',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 3),
+      );
+      return false;
+    }
+  }
+
+  /// Advance to next stage - MAIN ACTION
+  void advanceStage() async {
+    // Prevent multiple simultaneous updates
+    if (isUpdatingStatus.value) {
+      print('⚠️ Update already in progress, ignoring...');
+      return;
+    }
+
+    isUpdatingStatus.value = true;
+    print('⏩ Advancing from stage: ${stage.value}');
+
+    try {
+      switch (stage.value) {
+        case TripProgressStage.onTheWay:
+          // Stage 1 → 2: On the way → Arrived
+          final newStatus = _getApiStatusForStage(TripProgressStage.arrived);
+          final success = await _updateTripStatusApi(newStatus);
+
+          if (success) {
+            stage.value = TripProgressStage.arrived;
+            update();
+            Get.snackbar(
+              'Status Updated',
+              'You are on the way to pickup location',
+              snackPosition: SnackPosition.BOTTOM,
+              duration: const Duration(seconds: 2),
+            );
+          }
+          break;
+
+        case TripProgressStage.arrived:
+          // Stage 2 → 3: Arrived → Pick Passenger
+          final newStatus = _getApiStatusForStage(
+            TripProgressStage.pickPassenger,
+          );
+          final success = await _updateTripStatusApi(newStatus);
+
+          if (success) {
+            stage.value = TripProgressStage.pickPassenger;
+            update();
+            Get.snackbar(
+              'Status Updated',
+              'You have arrived at pickup location',
+              snackPosition: SnackPosition.BOTTOM,
+              duration: const Duration(seconds: 2),
+            );
+          }
+          break;
+
+        case TripProgressStage.pickPassenger:
+          // Stage 3 → 4: Pick Passenger → Finished Trip (UI only, no API call yet)
+          // Just update the local stage, don't send to API
+          stage.value = TripProgressStage.finishedTrip;
+          // Save locally so it persists
+          await _saveTripStatusLocally(trip.id, 'finished_trip_pending');
+          update();
+          Get.snackbar(
+            'Status Updated',
+            'Passenger picked up',
+            snackPosition: SnackPosition.BOTTOM,
+            duration: const Duration(seconds: 2),
+          );
+          break;
+
+        case TripProgressStage.finishedTrip:
+          // Stage 4: Actually complete the trip via API
+          final newStatus = _getApiStatusForStage(
+            TripProgressStage.finishedTrip,
+          );
+          final success = await _updateTripStatusApi(newStatus);
+           Get.back();
+          if (success) {
+            Get.snackbar(
+              'Trip Completed',
+              'Trip has been marked as completed',
+              snackPosition: SnackPosition.BOTTOM,
+              duration: const Duration(seconds: 2),
+            );
+
+            // Clear local storage when trip is completed
+            await _clearTripStatus(trip.id);
+           
+          }
+          break;
+      }
+    } finally {
+      isUpdatingStatus.value = false;
+    }
+  }
+
+  @override
+  void onClose() {
+    // Clean up if needed
+    super.onClose();
   }
 }
