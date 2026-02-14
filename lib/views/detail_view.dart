@@ -35,10 +35,7 @@ class DetailView extends StatelessWidget {
                       icon: const Icon(Icons.arrow_back),
                     ),
                     const Spacer(),
-                    Text(
-                      'Trip Details',
-                      style: AppTheme.sectionTitle,
-                    ),
+                    Text('Trip Details', style: AppTheme.sectionTitle),
                     const Spacer(),
                     const SizedBox(width: 48), // balance back button
                   ],
@@ -52,16 +49,17 @@ class DetailView extends StatelessWidget {
                       children: [
                         // Map preview
                         TripMapPreview(
-                          onExpand: () => Get.toNamed('/map', arguments: controller.trip),
+                          onExpand: () =>
+                              Get.toNamed('/map', arguments: controller.trip),
                         ),
-                        const SizedBox(height: 34),
+                        const SizedBox(height: 15),
 
                         // Date and time
                         Text(
                           controller.scheduledLabel.value,
                           style: AppTheme.tripTime,
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 10),
 
                         // Trip points card
                         TripPointsCard(
@@ -72,7 +70,7 @@ class DetailView extends StatelessWidget {
                           miles: controller.distanceMiles.value,
                           mins: controller.durationMins.value,
                         ),
-                        const SizedBox(height: 27),
+                        const SizedBox(height: 10),
 
                         // Customer contact card (only show for in-progress trips)
                         if (controller.trip.tripStatus == TripStatus.inProgress)
@@ -90,13 +88,13 @@ class DetailView extends StatelessWidget {
                           ),
 
                         if (controller.trip.tripStatus == TripStatus.inProgress)
-                          const SizedBox(height: 22),
+                          const SizedBox(height: 10),
 
                         // Flight Number Card
                         if (controller.flightNumber.value.isNotEmpty)
                           Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(16),
@@ -111,19 +109,21 @@ class DetailView extends StatelessWidget {
                             child: Row(
                               children: [
                                 Container(
-                                  width: 40,
-                                  height: 40,
+                                  width: 35,
+                                  height: 35,
                                   decoration: BoxDecoration(
-                                    color: AppColors.portalOlive.withOpacity(0.1),
+                                    color: AppColors.portalOlive.withOpacity(
+                                      0.1,
+                                    ),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Icon(
                                     Icons.flight_outlined,
                                     color: AppColors.portalOlive,
-                                    size: 24,
+                                    size: 20,
                                   ),
                                 ),
-                                const SizedBox(width: 16),
+                                const SizedBox(width: 10),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -149,14 +149,14 @@ class DetailView extends StatelessWidget {
                               ],
                             ),
                           ),
-                        
+
                         if (controller.flightNumber.value.isNotEmpty)
-                          const SizedBox(height: 22),
+                          const SizedBox(height: 10),
 
                         // Notes Card
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
@@ -168,44 +168,47 @@ class DetailView extends StatelessWidget {
                               ),
                             ],
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
                             children: [
-                              Row(
+                              Container(
+                                width: 35,
+                                height: 35,
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.note_outlined,
+                                  color: Colors.amber,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: Colors.amber.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Icon(
-                                      Icons.note_outlined,
-                                      color: Colors.amber,
-                                      size: 24,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
                                   Text(
                                     'Notes',
                                     style: AppTheme.titleMedium,
                                   ),
+                                  Text(
+                                    controller.notes.value,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color:
+                                          controller.notes.value ==
+                                              'No notes'
+                                          ? AppColors.textSecondary
+                                          : AppColors.textPrimary,
+                                      fontStyle:
+                                          controller.notes.value ==
+                                              'No notes'
+                                          ? FontStyle.italic
+                                          : FontStyle.normal,
+                                      height: 1.5,
+                                    ),
+                                  ),
                                 ],
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                controller.notes.value,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: controller.notes.value == 'No notes'
-                                      ? AppColors.textSecondary
-                                      : AppColors.textPrimary,
-                                  fontStyle: controller.notes.value == 'No notes'
-                                      ? FontStyle.italic
-                                      : FontStyle.normal,
-                                  height: 1.5,
-                                ),
                               ),
                             ],
                           ),

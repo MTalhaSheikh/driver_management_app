@@ -126,16 +126,16 @@ class TripCard extends StatelessWidget {
               ),
             ],
           ),
-          if (highlighted) ...[
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                _Meta(icon: Icons.groups_outlined, text: '${trip.pax} Pax'),
-                const SizedBox(width: 14),
-                _Meta(icon: Icons.work_outline, text: '${trip.bags} Bags'),
-              ],
-            ),
-          ],
+          // if (highlighted) ...[
+          //   const SizedBox(height: 14),
+          //   Row(
+          //     children: [
+          //       _Meta(icon: Icons.groups_outlined, text: '${trip.pax} Pax'),
+          //       const SizedBox(width: 14),
+          //       _Meta(icon: Icons.work_outline, text: '${trip.bags} Bags'),
+          //     ],
+          //   ),
+          // ],
         ],
       ),
     );

@@ -59,10 +59,10 @@ class _TripMapPreviewState extends State<TripMapPreview> {
           Marker(
             markerId: const MarkerId('current_location'),
             position: LatLng(position.latitude, position.longitude),
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-            infoWindow: const InfoWindow(
-              title: 'Current Location',
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+              BitmapDescriptor.hueRed,
             ),
+            infoWindow: const InfoWindow(title: 'Current Location'),
           ),
         );
       });
@@ -120,9 +120,17 @@ class _TripMapPreviewState extends State<TripMapPreview> {
                     ),
                     markers: _markers,
                     myLocationEnabled: true,
-                    myLocationButtonEnabled: false,
+                    // myLocationButtonEnabled: false,
+                    // zoomControlsEnabled: false,
+                    // mapToolbarEnabled: false,
+                    // zoomGesturesEnabled: false,
+                    scrollGesturesEnabled: false,
+                    rotateGesturesEnabled: false,
+                    tiltGesturesEnabled: false,
                     zoomControlsEnabled: false,
+                    myLocationButtonEnabled: false,
                     mapToolbarEnabled: false,
+                    liteModeEnabled: true,
                     onMapCreated: (GoogleMapController controller) {
                       _mapController = controller;
                       if (_currentPosition != null) {
@@ -168,4 +176,3 @@ class _TripMapPreviewState extends State<TripMapPreview> {
     );
   }
 }
-

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:limo_guy/controllers/detail_controller.dart';
 
 import '../controllers/trip_info_controller.dart';
 import '../core/app_colors.dart';
@@ -14,7 +15,8 @@ class TripInfoView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TripInfoController controller = Get.find<TripInfoController>();
+    final TripInfoController tripInfoController = Get.find<TripInfoController>();
+    final DetailController detailController = Get.find<DetailController>();
 
     return Scaffold(
       backgroundColor: AppColors.screenBackground,
@@ -36,7 +38,7 @@ class TripInfoView extends StatelessWidget {
                     ),
                     const Spacer(),
                     Text(
-                      controller.stageTitle,
+                      tripInfoController.stageTitle,
                       style: AppTheme.sectionTitle,
                     ),
                     const Spacer(),
@@ -53,28 +55,151 @@ class TripInfoView extends StatelessWidget {
                         TripMapPreview(
                           onExpand: () => Get.toNamed('/map'),
                         ),
-                        const SizedBox(height: 34),
+                        const SizedBox(height: 15),
                         Text(
-                          controller.scheduledLabel.value,
+                          tripInfoController.scheduledLabel.value,
                           style: AppTheme.tripTime,
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 10),
                         TripPointsCard(
-                          pickupTitle: controller.pickupTitle.value,
-                          pickupSubtitle: controller.pickupSubtitle.value,
-                          dropoffTitle: controller.dropoffTitle.value,
-                          dropoffSubtitle: controller.dropoffSubtitle.value,
-                          miles: controller.distanceMiles.value,
-                          mins: controller.durationMins.value,
+                          pickupTitle: tripInfoController.pickupTitle.value,
+                          pickupSubtitle: tripInfoController.pickupSubtitle.value,
+                          dropoffTitle: tripInfoController.dropoffTitle.value,
+                          dropoffSubtitle: tripInfoController.dropoffSubtitle.value,
+                          miles: tripInfoController.distanceMiles.value,
+                          mins: tripInfoController.durationMins.value,
                         ),
-                        const SizedBox(height: 27),
+                        const SizedBox(height: 10),
                         PassengerContactCard(
-                          name: controller.passengerName.value,
-                          phone: controller.passengerPhone.value,
+                          name: tripInfoController.passengerName.value,
+                          phone: tripInfoController.passengerPhone.value,
                           onChat: () {},
                           onCall: () {},
                         ),
-                        const SizedBox(height: 22),
+                        const SizedBox(height: 10),
+
+
+                        // Flight Number Card
+                        if (detailController.flightNumber.value.isNotEmpty)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: AppColors.pillShadow,
+                                  blurRadius: 12,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 35,
+                                  height: 35,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.portalOlive.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    Icons.flight_outlined,
+                                    color: AppColors.portalOlive,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Flight Number',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textSecondary,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      detailController.flightNumber.value,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
+                           if (detailController.notes.value.isNotEmpty)
+                          const SizedBox(height: 10),
+
+                        // Notes Card
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: AppColors.pillShadow,
+                                blurRadius: 12,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 35,
+                                height: 35,
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.note_outlined,
+                                  color: Colors.amber,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Notes',
+                                    style: AppTheme.titleMedium,
+                                  ),
+                                  Text(
+                                    detailController.notes.value,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color:
+                                          detailController.notes.value ==
+                                              'No notes'
+                                          ? AppColors.textSecondary
+                                          : AppColors.textPrimary,
+                                      fontStyle:
+                                          detailController.notes.value ==
+                                              'No notes'
+                                          ? FontStyle.italic
+                                          : FontStyle.normal,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -83,11 +208,11 @@ class TripInfoView extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: SlideActionButton(
-                    label: controller.stageTitle,
-                    leadingIcon: _stageIcon(controller.stage.value),
-                    isLoading: controller.isUpdatingStatus.value,
+                    label: tripInfoController.stageTitle,
+                    leadingIcon: _stageIcon(tripInfoController.stage.value),
+                    isLoading: tripInfoController.isUpdatingStatus.value,
                     onCompleted: () {
-                      controller.advanceStage();
+                      tripInfoController.advanceStage();
                     },
                   ),
                 ),

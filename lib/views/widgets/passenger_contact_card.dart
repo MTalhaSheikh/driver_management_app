@@ -20,10 +20,10 @@ class PassengerContactCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: const [
           BoxShadow(
             color: AppColors.softCardShadow,
@@ -35,14 +35,14 @@ class PassengerContactCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 54,
-            height: 54,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(color: AppColors.portalOlive, width: 2),
               color: const Color(0xFFE5E7EB),
             ),
-            child: const Icon(Icons.person, color: Colors.black54),
+            child: const Icon(Icons.person, color: Colors.black54, size: 20,),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -76,13 +76,13 @@ class _IconButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(22),
       onTap: onTap,
       child: Container(
-        width: 46,
-        height: 46,
+        width: 40,
+        height: 40,
         decoration: const BoxDecoration(
           color: Color(0xFFF3F4F6),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: AppColors.textPrimary),
+        child: Icon(icon, color: AppColors.textPrimary, size: 20,),
       ),
     );
   }

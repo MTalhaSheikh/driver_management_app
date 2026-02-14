@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:limo_guy/controllers/home_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/trip_model.dart';
 import '../services/api_service.dart';
@@ -266,13 +267,13 @@ TripProgressStage? _stageFromStatus(String status) {
         status: status,
       );
 
-      if (success) {
-        print('✅ API update successful');
-        // CRITICAL: Save locally immediately after API success
-        await _saveTripStatusLocally(trip.id, status);
-      } else {
-        print('❌ API update failed');
-      }
+      // if (success) {
+      //   print('✅ API update successful');
+      //   // CRITICAL: Save locally immediately after API success
+      //   await _saveTripStatusLocally(trip.id, status);
+      // } else {
+      //   print('❌ API update failed');
+      // }
 
       return success;
     } on ApiException catch (e) {
@@ -316,12 +317,14 @@ TripProgressStage? _stageFromStatus(String status) {
       switch (stage.value) {
         case TripProgressStage.onTheWay:
           // Stage 1 → 2: On the way → Arrived
-          final newStatus = _getApiStatusForStage(TripProgressStage.arrived);
+          final newStatus = _getApiStatusForStage(TripProgressStage.onTheWay);
           final success = await _updateTripStatusApi(newStatus);
 
           if (success) {
             stage.value = TripProgressStage.arrived;
             update();
+            print("stage: ${stage.value}");
+            await _saveTripStatusLocally(trip.id, "arrived");
             Get.snackbar(
               'Status Updated',
               'You are on the way to pickup location',
@@ -334,13 +337,15 @@ TripProgressStage? _stageFromStatus(String status) {
         case TripProgressStage.arrived:
           // Stage 2 → 3: Arrived → Pick Passenger
           final newStatus = _getApiStatusForStage(
-            TripProgressStage.pickPassenger,
+            TripProgressStage.arrived,
           );
           final success = await _updateTripStatusApi(newStatus);
 
           if (success) {
             stage.value = TripProgressStage.pickPassenger;
             update();
+            print("stage: ${stage.value}");
+            await _saveTripStatusLocally(trip.id, "picked_up");
             Get.snackbar(
               'Status Updated',
               'You have arrived at pickup location',
@@ -351,21 +356,28 @@ TripProgressStage? _stageFromStatus(String status) {
           break;
 
         case TripProgressStage.pickPassenger:
-          // Stage 3 → 4: Pick Passenger → Finished Trip (UI only, no API call yet)
-          // Just update the local stage, don't send to API
-          stage.value = TripProgressStage.finishedTrip;
-          // Save locally so it persists
-          await _saveTripStatusLocally(trip.id, 'finished_trip_pending');
-          update();
-          Get.snackbar(
-            'Status Updated',
-            'Passenger picked up',
-            snackPosition: SnackPosition.BOTTOM,
-            duration: const Duration(seconds: 2),
+          // Stage 2 → 3: Arrived → Pick Passenger
+          final newStatus = _getApiStatusForStage(
+            TripProgressStage.pickPassenger,
           );
+          final success = await _updateTripStatusApi(newStatus);
+
+          if (success) {
+            stage.value = TripProgressStage.finishedTrip;
+            update();
+            print("stage: ${stage.value}");
+            await _saveTripStatusLocally(trip.id, "completed");
+            Get.snackbar(
+              'Status Updated',
+              'Passenger picked up',
+              snackPosition: SnackPosition.BOTTOM,
+              duration: const Duration(seconds: 2),
+            );
+          }
           break;
 
         case TripProgressStage.finishedTrip:
+          final HomeController homeController = Get.find<HomeController>();
           // Stage 4: Actually complete the trip via API
           final newStatus = _getApiStatusForStage(
             TripProgressStage.finishedTrip,
@@ -373,6 +385,7 @@ TripProgressStage? _stageFromStatus(String status) {
           final success = await _updateTripStatusApi(newStatus);
            Get.back();
           if (success) {
+            homeController.refreshTrips();
             Get.snackbar(
               'Trip Completed',
               'Trip has been marked as completed',
@@ -382,7 +395,6 @@ TripProgressStage? _stageFromStatus(String status) {
 
             // Clear local storage when trip is completed
             await _clearTripStatus(trip.id);
-           
           }
           break;
       }
