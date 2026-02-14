@@ -172,6 +172,57 @@ class ApiService {
     }
   }
 
+  /// Update driver location endpoint
+  /// Sends latitude, longitude, and optional trip_id (empty when no active trip)
+  Future<bool> updateDriverLocation({
+    required String token,
+    required double latitude,
+    required double longitude,
+    int? tripId,
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl/driver/location');
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer $token',
+        },
+        body: {
+          'latitude': latitude.toString(),
+          'longitude': longitude.toString(),
+          'trip_id': tripId?.toString() ?? '',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print('Location update successful: ($latitude, $longitude) with trip_id: ${tripId ?? 'none'}');
+        final jsonData = json.decode(response.body);
+        return jsonData['success'] ?? false;
+      } else if (response.statusCode == 401) {
+        throw ApiException(
+          message: 'Invalid token',
+          statusCode: response.statusCode,
+        );
+      } else {
+        final jsonData = json.decode(response.body);
+        throw ApiException(
+          message: jsonData['message'] ?? 'Failed to update location',
+          statusCode: response.statusCode,
+        );
+      }
+    } catch (e) {
+      if (e is ApiException) {
+        rethrow;
+      }
+      throw ApiException(
+        message: 'Network error: ${e.toString()}',
+        statusCode: 0,
+      );
+    }
+  }
+
   /// Update trip status endpoint
   /// Sends trip status updates to the backend
   /// Status values: on_the_way, arrived, picked_up, completed

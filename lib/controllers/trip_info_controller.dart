@@ -3,6 +3,7 @@ import 'package:limo_guy/controllers/home_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/trip_model.dart';
 import '../services/api_service.dart';
+import '../services/location_update_service.dart';
 
 enum TripProgressStage { onTheWay, arrived, pickPassenger, finishedTrip }
 
@@ -65,6 +66,10 @@ class TripInfoController extends GetxController {
 
         // Load and set the initial stage
         await _setInitialStage();
+        // If "On the way" was already pressed (saved or API status), send trip id with location
+        if (await _isTripAlreadyStarted()) {
+          await Get.find<LocationUpdateService>().setActiveTripId(trip.id);
+        }
       } else {
         print('Warning: No trip data provided to TripInfoController');
         _setDefaultValues();
@@ -130,6 +135,40 @@ class TripInfoController extends GetxController {
       print('❌ Error in _setInitialStage: $e');
       stage.value = TripProgressStage.onTheWay;
       update();
+    }
+  }
+
+  /// True only if the driver has actually pressed "On the way". Do not use saved 'on_the_way' (we use that as fallback for pending).
+  Future<bool> _isTripAlreadyStarted() async {
+    if (stage.value == TripProgressStage.arrived ||
+        stage.value == TripProgressStage.pickPassenger) {
+      return true;
+    }
+    if (stage.value != TripProgressStage.onTheWay) return false;
+    // API says they started
+    if (_isStartedStatus(trip.status)) return true;
+    // Saved status from a real tap (arrived/picked_up/completed), not fallback 'on_the_way'
+    final savedStatus = await _getSavedTripStatus(trip.id);
+    return _isSavedStatusAfterStart(savedStatus);
+  }
+
+  /// Saved status written after driver actually advanced (not the fallback 'on_the_way' for pending).
+  static bool _isSavedStatusAfterStart(String? status) {
+    if (status == null || status.isEmpty) return false;
+    final t = status.toLowerCase().trim();
+    return t == 'arrived' || t == 'picked_up' || t == 'pickedup' || t == 'completed';
+  }
+
+  static bool _isStartedStatus(String status) {
+    switch (status) {
+      case 'on_the_way':
+      case 'ontheway':
+      case 'arrived':
+      case 'picked_up':
+      case 'pickedup':
+        return true;
+      default:
+        return false;
     }
   }
 
@@ -316,11 +355,13 @@ TripProgressStage? _stageFromStatus(String status) {
     try {
       switch (stage.value) {
         case TripProgressStage.onTheWay:
-          // Stage 1 → 2: On the way → Arrived
+          // Stage 1 → 2: On the way → Arrived (driver taps "On the way" to start the trip)
           final newStatus = _getApiStatusForStage(TripProgressStage.onTheWay);
           final success = await _updateTripStatusApi(newStatus);
 
           if (success) {
+            // Pass trip id with location API once driver has started the trip
+            await Get.find<LocationUpdateService>().setActiveTripId(trip.id);
             stage.value = TripProgressStage.arrived;
             update();
             print("stage: ${stage.value}");
@@ -405,7 +446,8 @@ TripProgressStage? _stageFromStatus(String status) {
 
   @override
   void onClose() {
-    // Clean up if needed
+    // Clear trip ID when trip ends / leaving trip screen
+    Get.find<LocationUpdateService>().setActiveTripId(null);
     super.onClose();
   }
 }

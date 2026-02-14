@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:limo_guy/services/location_update_service.dart';
 import 'bindings/initial_binding.dart';
 import 'routes/app_pages.dart';
 import 'core/app_theme.dart';
@@ -24,6 +25,10 @@ void main() async {
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
+
+   // Initialize location service
+  final locationService = Get.put(LocationUpdateService());
+  await locationService.initialize();
   
   runApp(const MyApp());
 }

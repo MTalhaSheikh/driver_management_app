@@ -1,13 +1,13 @@
 import 'package:get/get.dart';
 import '../controllers/login_controller.dart';
+import '../services/location_update_service.dart';
 
 /// Initial binding for the app
-/// This ensures LoginController is always available
+/// This ensures LoginController and LocationUpdateService are always available
 class InitialBinding extends Bindings {
   @override
   void dependencies() {
-    // Put LoginController as a permanent dependency
-    // This makes it available throughout the app lifecycle
     Get.put(LoginController(), permanent: true);
+    Get.put(LocationUpdateService(), permanent: true);
   }
 }

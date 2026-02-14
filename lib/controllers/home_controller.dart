@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../controllers/login_controller.dart';
 import '../models/trip_model.dart';
 import '../services/api_service.dart';
+import '../services/location_update_service.dart';
 
 class HomeController extends GetxController {
   final ApiService _apiService = ApiService();
@@ -39,6 +40,15 @@ class HomeController extends GetxController {
     super.onInit();
     _loadDriverName();
     _loadTrips();
+    // Start tracking (e.g., after login) when app is in foreground
+    _startLocationTracking();
+  }
+
+  /// Start location tracking after login / when reaching home
+  Future<void> _startLocationTracking() async {
+    try {
+      await Get.find<LocationUpdateService>().start();
+    } catch (_) {}
   }
 
   /// Load driver name from LoginController

@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
+import '../services/location_update_service.dart';
 import '../routes/app_routes.dart';
 
 class LoginController extends GetxController {
@@ -109,6 +110,11 @@ class LoginController extends GetxController {
     try {
       isLoading.value = true;
       
+      // Stop tracking (e.g., on logout)
+      try {
+        await Get.find<LocationUpdateService>().stop();
+      } catch (_) {}
+
       // Call logout API if user has a token
       if (authToken.value.isNotEmpty) {
         try {
@@ -119,7 +125,7 @@ class LoginController extends GetxController {
           // Still proceed with local cleanup even if API call fails
         }
       }
-      
+
       // Clear SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
