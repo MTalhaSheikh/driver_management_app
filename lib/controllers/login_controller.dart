@@ -25,7 +25,7 @@ class LoginController extends GetxController {
     _checkSavedCredentials();
   }
 
-  /// Check if user is already logged in
+  /// Restore saved login state (no navigation — Splash handles that after delay)
   Future<void> _checkSavedCredentials() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -36,9 +36,6 @@ class LoginController extends GetxController {
         driverId.value = prefs.getInt('driver_id') ?? 0;
         driverName.value = prefs.getString('driver_name') ?? '';
         driverPhone.value = prefs.getString('driver_phone') ?? '';
-        
-        // Navigate to home if already logged in
-        Get.offAllNamed(AppRoutes.home);
       }
     } catch (e) {
       print('Error checking saved credentials: $e');

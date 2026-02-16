@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../../core/app_colors.dart';
 import 'shimmer_loading.dart';
+import 'map_view.dart';
 
 class TripMapPreview extends StatefulWidget {
   final VoidCallback? onExpand;
@@ -20,6 +21,9 @@ class _TripMapPreviewState extends State<TripMapPreview> {
   Position? _currentPosition;
   bool _isLoading = true;
   final Set<Marker> _markers = {};
+
+  final LatLng _pickupLocation = const LatLng(51.5074, -0.1278); // Example pickup location
+  final LatLng _dropOffLocation = const LatLng(51.5155, -0.1419); // Example drop-off location
 
   @override
   void initState() {
@@ -55,6 +59,8 @@ class _TripMapPreviewState extends State<TripMapPreview> {
       setState(() {
         _currentPosition = position;
         _isLoading = false;
+
+        // Add current location marker
         _markers.add(
           Marker(
             markerId: const MarkerId('current_location'),
@@ -65,13 +71,54 @@ class _TripMapPreviewState extends State<TripMapPreview> {
             infoWindow: const InfoWindow(title: 'Current Location'),
           ),
         );
+
+        // Add pickup location marker
+        _markers.add(
+          Marker(
+            markerId: const MarkerId('pickup_location'),
+            position: _pickupLocation,
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+              BitmapDescriptor.hueGreen,
+            ),
+            infoWindow: const InfoWindow(title: 'Pickup Location'),
+          ),
+        );
+
+        // Add drop-off location marker
+        _markers.add(
+          Marker(
+            markerId: const MarkerId('dropoff_location'),
+            position: _dropOffLocation,
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+              BitmapDescriptor.hueRed,
+            ),
+            infoWindow: const InfoWindow(title: 'Drop-off Location'),
+          ),
+        );
       });
 
-      // Move camera to current location
+      // Move camera to show both pickup and drop-off locations
       _mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(
-          LatLng(position.latitude, position.longitude),
-          15.0,
+        CameraUpdate.newLatLngBounds(
+          LatLngBounds(
+            southwest: LatLng(
+              _pickupLocation.latitude < _dropOffLocation.latitude
+                  ? _pickupLocation.latitude
+                  : _dropOffLocation.latitude,
+              _pickupLocation.longitude < _dropOffLocation.longitude
+                  ? _pickupLocation.longitude
+                  : _dropOffLocation.longitude,
+            ),
+            northeast: LatLng(
+              _pickupLocation.latitude > _dropOffLocation.latitude
+                  ? _pickupLocation.latitude
+                  : _dropOffLocation.latitude,
+              _pickupLocation.longitude > _dropOffLocation.longitude
+                  ? _pickupLocation.longitude
+                  : _dropOffLocation.longitude,
+            ),
+          ),
+          50.0, // Padding around the bounds
         ),
       );
     } catch (e) {
@@ -120,17 +167,10 @@ class _TripMapPreviewState extends State<TripMapPreview> {
                     ),
                     markers: _markers,
                     myLocationEnabled: true,
-                    // myLocationButtonEnabled: false,
-                    // zoomControlsEnabled: false,
-                    // mapToolbarEnabled: false,
-                    // zoomGesturesEnabled: false,
-                    scrollGesturesEnabled: false,
-                    rotateGesturesEnabled: false,
-                    tiltGesturesEnabled: false,
-                    zoomControlsEnabled: false,
                     myLocationButtonEnabled: false,
+                    zoomControlsEnabled: false,
                     mapToolbarEnabled: false,
-                    liteModeEnabled: true,
+                    zoomGesturesEnabled: false,
                     onMapCreated: (GoogleMapController controller) {
                       _mapController = controller;
                       if (_currentPosition != null) {
@@ -152,7 +192,17 @@ class _TripMapPreviewState extends State<TripMapPreview> {
             bottom: 14,
             child: InkWell(
               borderRadius: BorderRadius.circular(20),
-              onTap: widget.onExpand,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MapView(
+                      pickupLocation: _pickupLocation,
+                      dropOffLocation: _dropOffLocation,
+                    ),
+                  ),
+                );
+              },
               child: Container(
                 width: 44,
                 height: 44,

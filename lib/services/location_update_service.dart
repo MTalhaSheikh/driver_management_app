@@ -118,7 +118,7 @@ void onStart(ServiceInstance service) async {
   });
 
   // Send location every 10 seconds
-  timer = Timer.periodic(const Duration(seconds: 10), (timer) async {
+  timer = Timer.periodic(const Duration(seconds: 30), (timer) async {
     if (authToken == null || authToken!.isEmpty) return;
 
     try {

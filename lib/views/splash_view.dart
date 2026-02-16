@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../controllers/login_controller.dart';
 import '../core/app_colors.dart';
 import '../core/app_texts.dart';
 import '../core/app_theme.dart';
@@ -12,9 +13,14 @@ class SplashView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Navigate to login after 2 seconds
+    // Single navigation after delay: Home if logged in, else Login (avoids double Home)
     Future.delayed(const Duration(seconds: 2), () {
-      Get.offNamed(AppRoutes.login);
+      if (Get.isRegistered<LoginController>() &&
+          Get.find<LoginController>().isAuthenticated) {
+        Get.offAllNamed(AppRoutes.home);
+      } else {
+        Get.offNamed(AppRoutes.login);
+      }
     });
 
     return Scaffold(

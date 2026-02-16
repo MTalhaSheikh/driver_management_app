@@ -57,14 +57,14 @@ class AppPages {
       middlewares: [AuthMiddleware()],
     ),
     
-    GetPage(
-      name: AppRoutes.map,
-      page: () => const MapView(),
-      binding: MapBinding(),
-      transition: Transition.downToUp,
-      fullscreenDialog: true,
-      middlewares: [AuthMiddleware()],
-    ),
+    // GetPage(
+    //   name: AppRoutes.map,
+    //   page: () => const MapView(),
+    //   binding: MapBinding(),
+    //   transition: Transition.downToUp,
+    //   fullscreenDialog: true,
+    //   middlewares: [AuthMiddleware()],
+    // ),
     
     GetPage(
       name: AppRoutes.profile,
