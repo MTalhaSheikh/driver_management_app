@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:limo_guy/controllers/detail_controller.dart';
 
 import '../controllers/trip_info_controller.dart';
@@ -53,7 +54,14 @@ class TripInfoView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         TripMapPreview(
-                          onExpand: () => Get.toNamed('/map'),
+                          pickupLocation: LatLng(
+                            tripInfoController.trip.pickupLat,
+                            tripInfoController.trip.pickupLng,
+                          ),
+                          dropOffLocation: LatLng(
+                            tripInfoController.trip.dropoffLat,
+                            tripInfoController.trip.dropoffLng,
+                          ),
                         ),
                         const SizedBox(height: 15),
                         Text(

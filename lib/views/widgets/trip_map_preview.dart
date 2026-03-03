@@ -8,9 +8,18 @@ import 'shimmer_loading.dart';
 import 'map_view.dart';
 
 class TripMapPreview extends StatefulWidget {
+  /// Pickup coordinates from the trip (e.g. trip.pickupLat, trip.pickupLng).
+  final LatLng pickupLocation;
+  /// Drop-off coordinates from the trip (e.g. trip.dropoffLat, trip.dropoffLng).
+  final LatLng dropOffLocation;
   final VoidCallback? onExpand;
 
-  const TripMapPreview({super.key, this.onExpand});
+  const TripMapPreview({
+    super.key,
+    required this.pickupLocation,
+    required this.dropOffLocation,
+    this.onExpand,
+  });
 
   @override
   State<TripMapPreview> createState() => _TripMapPreviewState();
@@ -21,9 +30,6 @@ class _TripMapPreviewState extends State<TripMapPreview> {
   Position? _currentPosition;
   bool _isLoading = true;
   final Set<Marker> _markers = {};
-
-  final LatLng _pickupLocation = const LatLng(51.5074, -0.1278); // Example pickup location
-  final LatLng _dropOffLocation = const LatLng(51.5155, -0.1419); // Example drop-off location
 
   @override
   void initState() {
@@ -76,7 +82,7 @@ class _TripMapPreviewState extends State<TripMapPreview> {
         _markers.add(
           Marker(
             markerId: const MarkerId('pickup_location'),
-            position: _pickupLocation,
+            position: widget.pickupLocation,
             icon: BitmapDescriptor.defaultMarkerWithHue(
               BitmapDescriptor.hueGreen,
             ),
@@ -88,7 +94,7 @@ class _TripMapPreviewState extends State<TripMapPreview> {
         _markers.add(
           Marker(
             markerId: const MarkerId('dropoff_location'),
-            position: _dropOffLocation,
+            position: widget.dropOffLocation,
             icon: BitmapDescriptor.defaultMarkerWithHue(
               BitmapDescriptor.hueRed,
             ),
@@ -102,20 +108,20 @@ class _TripMapPreviewState extends State<TripMapPreview> {
         CameraUpdate.newLatLngBounds(
           LatLngBounds(
             southwest: LatLng(
-              _pickupLocation.latitude < _dropOffLocation.latitude
-                  ? _pickupLocation.latitude
-                  : _dropOffLocation.latitude,
-              _pickupLocation.longitude < _dropOffLocation.longitude
-                  ? _pickupLocation.longitude
-                  : _dropOffLocation.longitude,
+              widget.pickupLocation.latitude < widget.dropOffLocation.latitude
+                  ? widget.pickupLocation.latitude
+                  : widget.dropOffLocation.latitude,
+              widget.pickupLocation.longitude < widget.dropOffLocation.longitude
+                  ? widget.pickupLocation.longitude
+                  : widget.dropOffLocation.longitude,
             ),
             northeast: LatLng(
-              _pickupLocation.latitude > _dropOffLocation.latitude
-                  ? _pickupLocation.latitude
-                  : _dropOffLocation.latitude,
-              _pickupLocation.longitude > _dropOffLocation.longitude
-                  ? _pickupLocation.longitude
-                  : _dropOffLocation.longitude,
+              widget.pickupLocation.latitude > widget.dropOffLocation.latitude
+                  ? widget.pickupLocation.latitude
+                  : widget.dropOffLocation.latitude,
+              widget.pickupLocation.longitude > widget.dropOffLocation.longitude
+                  ? widget.pickupLocation.longitude
+                  : widget.dropOffLocation.longitude,
             ),
           ),
           50.0, // Padding around the bounds
@@ -162,7 +168,14 @@ class _TripMapPreviewState extends State<TripMapPreview> {
                               _currentPosition!.latitude,
                               _currentPosition!.longitude,
                             )
-                          : const LatLng(51.5074, -0.1278), // Default to London
+                          : LatLng(
+                              (widget.pickupLocation.latitude +
+                                      widget.dropOffLocation.latitude) /
+                                  2,
+                              (widget.pickupLocation.longitude +
+                                      widget.dropOffLocation.longitude) /
+                                  2,
+                            ),
                       zoom: 15.0,
                     ),
                     markers: _markers,
@@ -193,15 +206,19 @@ class _TripMapPreviewState extends State<TripMapPreview> {
             child: InkWell(
               borderRadius: BorderRadius.circular(20),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MapView(
-                      pickupLocation: _pickupLocation,
-                      dropOffLocation: _dropOffLocation,
+                if (widget.onExpand != null) {
+                  widget.onExpand!();
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MapView(
+                        pickupLocation: widget.pickupLocation,
+                        dropOffLocation: widget.dropOffLocation,
+                      ),
                     ),
-                  ),
-                );
+                  );
+                }
               },
               child: Container(
                 width: 44,

@@ -63,8 +63,11 @@ class TripPointsCard extends StatelessWidget {
             Row(
               children: [
                 if (miles != null) ...[
-                  const Icon(Icons.pin_drop_outlined,
-                      size: 18, color: AppColors.portalOlive),
+                  const Icon(
+                    Icons.pin_drop_outlined,
+                    size: 18,
+                    color: AppColors.portalOlive,
+                  ),
                   const SizedBox(width: 10),
                   Text(
                     '${miles!.toStringAsFixed(1)} ${AppTexts.miles}',
@@ -72,11 +75,20 @@ class TripPointsCard extends StatelessWidget {
                   ),
                 ],
                 const Spacer(),
+                // if (mins != null) ...[
+                //   const Icon(Icons.timer_outlined,
+                //       size: 18, color: AppColors.portalOlive),
+                //   const SizedBox(width: 10),
+                //   Text('~$mins ${AppTexts.mins}', style: AppTheme.metaText),
+                // ],
                 if (mins != null) ...[
-                  const Icon(Icons.timer_outlined,
-                      size: 18, color: AppColors.portalOlive),
+                  const Icon(
+                    Icons.timer_outlined,
+                    size: 18,
+                    color: AppColors.portalOlive,
+                  ),
                   const SizedBox(width: 10),
-                  Text('~$mins ${AppTexts.mins}', style: AppTheme.metaText),
+                  Text(_formatDuration(mins!), style: AppTheme.metaText),
                 ],
               ],
             ),
@@ -85,6 +97,21 @@ class TripPointsCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String _formatDuration(int totalMinutes) {
+  if (totalMinutes < 60) {
+    return '~$totalMinutes ${AppTexts.mins}';
+  }
+
+  final int hours = totalMinutes ~/ 60;
+  final int minutes = totalMinutes % 60;
+
+  if (minutes == 0) {
+    return '~$hours ${hours == 1 ? "hr" : "hrs"}';
+  }
+
+  return '~$hours ${hours == 1 ? "hr" : "hrs"} $minutes ${AppTexts.mins}';
 }
 
 enum _MarkerShape { circle, square }
@@ -158,8 +185,12 @@ class _Marker extends StatelessWidget {
       width: 22,
       height: 22,
       decoration: BoxDecoration(
-        shape: shape == _MarkerShape.circle ? BoxShape.circle : BoxShape.rectangle,
-        borderRadius: shape == _MarkerShape.square ? BorderRadius.circular(4) : null,
+        shape: shape == _MarkerShape.circle
+            ? BoxShape.circle
+            : BoxShape.rectangle,
+        borderRadius: shape == _MarkerShape.square
+            ? BorderRadius.circular(4)
+            : null,
         border: Border.all(color: color, width: 2),
         color: Colors.white,
       ),
@@ -181,4 +212,3 @@ class _Marker extends StatelessWidget {
     return box;
   }
 }
-

@@ -10,7 +10,6 @@ import '../bindings/trip_info_binding.dart';
 import '../views/detail_view.dart';
 import '../views/home_view.dart';
 import '../views/login/login_view.dart';
-import '../views/map_view.dart';
 import '../views/profile_view.dart';
 import '../views/splash_view.dart';
 import '../views/trip_info_view.dart';

@@ -208,14 +208,14 @@ class TripModel {
     }
   }
 
-  /// Pickup is within 1 hour from now (0 to 60 minutes ahead)
+  /// Pickup is within 1 hour from now (0 to 120 minutes ahead)
   bool _isWithinOneHourOfPickup() {
     try {
       final pickupDateTime = _pickupDateTime;
       if (pickupDateTime == null) return false;
       final now = DateTime.now();
       final difference = pickupDateTime.difference(now);
-      return difference.inMinutes <= 60 && difference.inMinutes >= 0;
+      return difference.inMinutes <= 120 && difference.inMinutes >= 0;
     } catch (e) {
       return false;
     }

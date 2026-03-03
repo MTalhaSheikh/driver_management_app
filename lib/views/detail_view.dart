@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../controllers/detail_controller.dart';
 import '../core/app_colors.dart';
@@ -47,10 +48,16 @@ class DetailView extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Map preview
+                        // Map preview (expand uses Navigator.push to MapView; /map route is not registered)
                         TripMapPreview(
-                          onExpand: () =>
-                              Get.toNamed('/map', arguments: controller.trip),
+                          pickupLocation: LatLng(
+                            controller.trip.pickupLat,
+                            controller.trip.pickupLng,
+                          ),
+                          dropOffLocation: LatLng(
+                            controller.trip.dropoffLat,
+                            controller.trip.dropoffLng,
+                          ),
                         ),
                         const SizedBox(height: 15),
 

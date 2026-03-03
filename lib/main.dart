@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:limo_guy/controllers/login_controller.dart';
 import 'package:limo_guy/services/location_update_service.dart';
 import 'bindings/initial_binding.dart';
 import 'routes/app_pages.dart';
@@ -26,11 +27,76 @@ void main() async {
     ),
   );
 
-   // Initialize location service
-  final locationService = Get.put(LocationUpdateService());
+  // Initialize location service (single instance)
+  final locationService = Get.put(LocationUpdateService(), permanent: true);
   await locationService.initialize();
   
   runApp(const MyApp());
+}
+
+/// Keeps location updating in foreground and background; stops only when app is killed (detached).
+class _AppLifecycleWrapper extends StatefulWidget {
+  const _AppLifecycleWrapper({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_AppLifecycleWrapper> createState() => _AppLifecycleWrapperState();
+}
+
+class _AppLifecycleWrapperState extends State<_AppLifecycleWrapper>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        // App back in foreground — ensure location is running if logged in
+        _startLocationServiceIfLoggedIn();
+        break;
+      case AppLifecycleState.detached:
+        // App is being killed / detached — stop location updates
+        _stopLocationService();
+        break;
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.inactive:
+        // Keep location running in background — do not stop
+        break;
+    }
+  }
+
+  void _stopLocationService() {
+    try {
+      if (Get.isRegistered<LocationUpdateService>()) {
+        Get.find<LocationUpdateService>().stop();
+      }
+    } catch (_) {}
+  }
+
+  void _startLocationServiceIfLoggedIn() {
+    try {
+      if (Get.isRegistered<LoginController>() &&
+          Get.isRegistered<LocationUpdateService>() &&
+          Get.find<LoginController>().isAuthenticated) {
+        Get.find<LocationUpdateService>().start();
+      }
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 class MyApp extends StatelessWidget {
@@ -58,12 +124,13 @@ class MyApp extends StatelessWidget {
       
       // Error handling & responsive text
       builder: (context, child) {
-        // Ensures text scale factor doesn't exceed certain limits
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaleFactor: MediaQuery.of(context).textScaleFactor.clamp(0.8, 1.2),
+        return _AppLifecycleWrapper(
+          child: MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaleFactor: MediaQuery.of(context).textScaleFactor.clamp(0.8, 1.2),
+            ),
+            child: child!,
           ),
-          child: child!,
         );
       },
       
