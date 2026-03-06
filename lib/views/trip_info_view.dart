@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:limo_guy/controllers/detail_controller.dart';
-
 import '../controllers/trip_info_controller.dart';
 import '../core/app_colors.dart';
 import '../core/app_theme.dart';
+import '../utils/phone_launcher.dart';
 import '../views/widgets/passenger_contact_card.dart';
 import '../views/widgets/slide_action_button.dart';
 import '../views/widgets/trip_map_preview.dart';
@@ -82,7 +82,8 @@ class TripInfoView extends StatelessWidget {
                           name: tripInfoController.passengerName.value,
                           phone: tripInfoController.passengerPhone.value,
                           onChat: () {},
-                          onCall: () {},
+                          onCall: () => launchPhoneDialer(
+                              tripInfoController.passengerPhone.value),
                         ),
                         const SizedBox(height: 10),
 

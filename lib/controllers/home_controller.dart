@@ -191,23 +191,29 @@ class HomeController extends GetxController {
     }
 
     // Sort trips:
-    // When showing all dates: by pickup date then time; otherwise by status then time
+    // History: descending (newest first). Upcoming: ascending (soonest first).
+    final isHistory = section.value == TripSection.history;
+    final order = isHistory ? -1 : 1; // -1 for descending, 1 for ascending
     filtered.sort((a, b) {
       if (selected == null) {
         // All-dates mode: sort by date first, then time
         final aDate = DateTime(a.pickupDate.year, a.pickupDate.month, a.pickupDate.day);
         final bDate = DateTime(b.pickupDate.year, b.pickupDate.month, b.pickupDate.day);
-        final dateCompare = aDate.compareTo(bDate);
+        final dateCompare = aDate.compareTo(bDate) * order;
         if (dateCompare != 0) return dateCompare;
       } else {
-        // Single-day mode: priority by status then time
+        // Single-day mode: history = by time desc; upcoming = priority by status then time
+        if (isHistory) {
+          final timeCompare = a.pickupTime.compareTo(b.pickupTime) * order;
+          return timeCompare;
+        }
         final aPriority = _getStatusPriority(a.tripStatus);
         final bPriority = _getStatusPriority(b.tripStatus);
         if (aPriority != bPriority) {
           return aPriority.compareTo(bPriority);
         }
       }
-      return a.pickupTime.compareTo(b.pickupTime);
+      return a.pickupTime.compareTo(b.pickupTime) * order;
     });
 
     return filtered;

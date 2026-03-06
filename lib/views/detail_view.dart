@@ -6,6 +6,7 @@ import '../controllers/detail_controller.dart';
 import '../core/app_colors.dart';
 import '../core/app_theme.dart';
 import '../models/trip_model.dart';
+import '../utils/phone_launcher.dart';
 import 'widgets/trip_map_preview.dart';
 import 'widgets/trip_points_card.dart';
 import 'widgets/passenger_contact_card.dart';
@@ -84,14 +85,8 @@ class DetailView extends StatelessWidget {
                           PassengerContactCard(
                             name: controller.customerName.value,
                             phone: controller.customerPhone.value,
-                            onCall: () {
-                              // Handle call action
-                              Get.snackbar(
-                                'Call',
-                                'Calling ${controller.customerPhone.value}',
-                                snackPosition: SnackPosition.BOTTOM,
-                              );
-                            },
+                            onCall: () =>
+                                launchPhoneDialer(controller.customerPhone.value),
                           ),
 
                         if (controller.trip.tripStatus == TripStatus.inProgress)
