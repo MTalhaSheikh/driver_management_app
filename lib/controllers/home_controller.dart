@@ -85,6 +85,10 @@ class HomeController extends GetxController {
         throw Exception('Failed to load trips');
       }
     } on ApiException catch (e) {
+      if (e.isUnauthorized) {
+        _loginController.forceLogout();
+        return;
+      }
       errorMessage.value = e.message;
       Get.snackbar(
         'Error',

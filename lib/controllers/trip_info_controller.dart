@@ -1,6 +1,7 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:limo_guy/controllers/home_controller.dart';
+import 'package:limo_guy/controllers/login_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/trip_model.dart';
 import '../services/api_service.dart';
@@ -324,6 +325,10 @@ TripProgressStage? _stageFromStatus(String status) {
       return success;
     } on ApiException catch (e) {
       print('❌ API Exception: ${e.message}');
+      if (e.isUnauthorized) {
+        Get.find<LoginController>().forceLogout();
+        return false;
+      }
       final message = e.statusCode == 0
           ? 'Network error. Please check your connection and try again.'
           : (e.message.isNotEmpty

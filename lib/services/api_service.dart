@@ -5,9 +5,8 @@ import '../models/driver_profile_model.dart';
 import '../models/trip_model.dart';
 
 class ApiService {
-  // Update this with your actual API base URL
   static const String baseUrl = 'https://dash.mayfairlimo.ca/api';
-  
+
   /// Login endpoint
   Future<LoginResponse> login({
     required String username,
@@ -15,23 +14,16 @@ class ApiService {
   }) async {
     try {
       final url = Uri.parse('$baseUrl/driver/login');
-      
       final response = await http.post(
         url,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: {
-          'username': username,
-          'password': password,
-        },
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {'username': username, 'password': password},
       );
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
         return LoginResponse.fromJson(jsonData);
       } else {
-        // Handle error responses
         final jsonData = json.decode(response.body);
         throw ApiException(
           message: jsonData['message'] ?? 'Login failed',
@@ -39,13 +31,8 @@ class ApiService {
         );
       }
     } catch (e) {
-      if (e is ApiException) {
-        rethrow;
-      }
-      throw ApiException(
-        message: 'Network error: ${e.toString()}',
-        statusCode: 0,
-      );
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Network error: ${e.toString()}', statusCode: 0);
     }
   }
 
@@ -53,7 +40,6 @@ class ApiService {
   Future<bool> logout({required String token}) async {
     try {
       final url = Uri.parse('$baseUrl/driver/logout');
-      
       final response = await http.post(
         url,
         headers: {
@@ -66,13 +52,8 @@ class ApiService {
         final jsonData = json.decode(response.body);
         return jsonData['success'] ?? false;
       } else if (response.statusCode == 401) {
-        // Unauthorized - token is invalid or expired
-        throw ApiException(
-          message: 'Invalid token',
-          statusCode: response.statusCode,
-        );
+        throw ApiException(message: 'Invalid token', statusCode: 401);
       } else {
-        // Handle other error responses
         final jsonData = json.decode(response.body);
         throw ApiException(
           message: jsonData['message'] ?? 'Logout failed',
@@ -80,13 +61,8 @@ class ApiService {
         );
       }
     } catch (e) {
-      if (e is ApiException) {
-        rethrow;
-      }
-      throw ApiException(
-        message: 'Network error: ${e.toString()}',
-        statusCode: 0,
-      );
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Network error: ${e.toString()}', statusCode: 0);
     }
   }
 
@@ -94,7 +70,6 @@ class ApiService {
   Future<DriverProfile> getProfile({required String token}) async {
     try {
       final url = Uri.parse('$baseUrl/driver/profile');
-      
       final response = await http.get(
         url,
         headers: {
@@ -107,13 +82,8 @@ class ApiService {
         final jsonData = json.decode(response.body);
         return DriverProfile.fromJson(jsonData);
       } else if (response.statusCode == 401) {
-        // Unauthorized - token is invalid or expired
-        throw ApiException(
-          message: 'Invalid token',
-          statusCode: response.statusCode,
-        );
+        throw ApiException(message: 'Session expired', statusCode: 401);
       } else {
-        // Handle other error responses
         final jsonData = json.decode(response.body);
         throw ApiException(
           message: jsonData['message'] ?? 'Failed to fetch profile',
@@ -121,13 +91,8 @@ class ApiService {
         );
       }
     } catch (e) {
-      if (e is ApiException) {
-        rethrow;
-      }
-      throw ApiException(
-        message: 'Network error: ${e.toString()}',
-        statusCode: 0,
-      );
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Network error: ${e.toString()}', statusCode: 0);
     }
   }
 
@@ -135,7 +100,6 @@ class ApiService {
   Future<TripsResponse> getTrips({required String token}) async {
     try {
       final url = Uri.parse('$baseUrl/driver/trips');
-      
       final response = await http.get(
         url,
         headers: {
@@ -148,13 +112,8 @@ class ApiService {
         final jsonData = json.decode(response.body);
         return TripsResponse.fromJson(jsonData);
       } else if (response.statusCode == 401) {
-        // Unauthorized - token is invalid or expired
-        throw ApiException(
-          message: 'Invalid token',
-          statusCode: response.statusCode,
-        );
+        throw ApiException(message: 'Session expired', statusCode: 401);
       } else {
-        // Handle other error responses
         final jsonData = json.decode(response.body);
         throw ApiException(
           message: jsonData['message'] ?? 'Failed to fetch trips',
@@ -162,18 +121,12 @@ class ApiService {
         );
       }
     } catch (e) {
-      if (e is ApiException) {
-        rethrow;
-      }
-      throw ApiException(
-        message: 'Network error: ${e.toString()}',
-        statusCode: 0,
-      );
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Network error: ${e.toString()}', statusCode: 0);
     }
   }
 
   /// Update driver location endpoint
-  /// Sends latitude, longitude, and optional trip_id (empty when no active trip)
   Future<bool> updateDriverLocation({
     required String token,
     required double latitude,
@@ -182,7 +135,6 @@ class ApiService {
   }) async {
     try {
       final url = Uri.parse('$baseUrl/driver/location');
-
       final response = await http.post(
         url,
         headers: {
@@ -197,14 +149,11 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        print('Location update successful: ($latitude, $longitude) with trip_id: ${tripId ?? 'none'}');
+        print('Location update successful: ($latitude, $longitude) trip_id: ${tripId ?? 'none'}');
         final jsonData = json.decode(response.body);
         return jsonData['success'] ?? false;
       } else if (response.statusCode == 401) {
-        throw ApiException(
-          message: 'Invalid token',
-          statusCode: response.statusCode,
-        );
+        throw ApiException(message: 'Session expired', statusCode: 401);
       } else {
         final jsonData = json.decode(response.body);
         throw ApiException(
@@ -213,19 +162,12 @@ class ApiService {
         );
       }
     } catch (e) {
-      if (e is ApiException) {
-        rethrow;
-      }
-      throw ApiException(
-        message: 'Network error: ${e.toString()}',
-        statusCode: 0,
-      );
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Network error: ${e.toString()}', statusCode: 0);
     }
   }
 
   /// Update trip status endpoint
-  /// Sends trip status updates to the backend
-  /// Status values: on_the_way, arrived, picked_up, completed
   Future<bool> updateTripStatus({
     required String token,
     required int tripId,
@@ -235,7 +177,6 @@ class ApiService {
   }) async {
     try {
       final url = Uri.parse('$baseUrl/driver/status');
-
       final body = <String, String>{
         'trip_id': tripId.toString(),
         'status': status,
@@ -254,16 +195,11 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        print('Trip status update successful: trip_id: $tripId, status: $status, location: (${latitude ?? 'N/A'}, ${longitude ?? 'N/A'})');
+        print('Trip status update: trip_id=$tripId, status=$status');
         return jsonData['success'] ?? false;
       } else if (response.statusCode == 401) {
-        // Unauthorized - token is invalid or expired
-        throw ApiException(
-          message: 'Invalid token',
-          statusCode: response.statusCode,
-        );
+        throw ApiException(message: 'Session expired', statusCode: 401);
       } else {
-        // Handle other error responses
         final jsonData = json.decode(response.body);
         throw ApiException(
           message: jsonData['message'] ?? 'Failed to update trip status',
@@ -271,13 +207,8 @@ class ApiService {
         );
       }
     } catch (e) {
-      if (e is ApiException) {
-        rethrow;
-      }
-      throw ApiException(
-        message: 'Network error: ${e.toString()}',
-        statusCode: 0,
-      );
+      if (e is ApiException) rethrow;
+      throw ApiException(message: 'Network error: ${e.toString()}', statusCode: 0);
     }
   }
 }
@@ -287,14 +218,10 @@ class ApiException implements Exception {
   final String message;
   final int statusCode;
 
-  ApiException({
-    required this.message,
-    required this.statusCode,
-  });
+  ApiException({required this.message, required this.statusCode});
+
+  bool get isUnauthorized => statusCode == 401;
 
   @override
   String toString() => message;
 }
-
-
-

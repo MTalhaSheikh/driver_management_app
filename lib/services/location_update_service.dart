@@ -24,7 +24,7 @@ class LocationUpdateService extends GetxService {
         autoStart: false,
         isForegroundMode: true,
         notificationChannelId: 'driver_location_channel',
-        initialNotificationTitle: 'Limo Guy',
+        initialNotificationTitle: 'Mayfair Driver',
         initialNotificationContent: 'Location tracking active',
         foregroundServiceNotificationId: 888,
       ),
@@ -112,7 +112,7 @@ class LocationUpdateService extends GetxService {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Limo Guy needs notifications to:',
+              'Mayfair Driver needs notifications to:',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
             SizedBox(height: 10),
@@ -189,7 +189,7 @@ class LocationUpdateService extends GetxService {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Limo Guy collects your location data to:',
+              'Mayfair Driver collects your location data to:',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
             SizedBox(height: 10),
@@ -295,7 +295,7 @@ void onStart(ServiceInstance service) async {
         // Update notification
         if (service is AndroidServiceInstance) {
           service.setForegroundNotificationInfo(
-            title: 'Limo Guy',
+            title: 'Mayfair Driver',
             content:
                 'Last update: ${DateTime.now().toString().substring(11, 19)}',
           );
@@ -320,7 +320,7 @@ void onStart(ServiceInstance service) async {
       // Set initial notification
       if (service is AndroidServiceInstance) {
         service.setForegroundNotificationInfo(
-          title: 'Limo Guy',
+          title: 'Mayfair Driver',
           content: 'Location tracking started',
         );
       }

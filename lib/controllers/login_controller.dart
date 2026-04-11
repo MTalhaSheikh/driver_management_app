@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
@@ -6,14 +7,12 @@ import '../routes/app_routes.dart';
 
 class LoginController extends GetxController {
   final ApiService _apiService = ApiService();
-  
-  // Observable variables
+
   var email = ''.obs;
   var password = ''.obs;
   var isLoading = false.obs;
   var errorMessage = ''.obs;
-  
-  // Store user data
+
   var driverId = 0.obs;
   var driverName = ''.obs;
   var driverPhone = ''.obs;
@@ -25,12 +24,10 @@ class LoginController extends GetxController {
     _checkSavedCredentials();
   }
 
-  /// Restore saved login state (no navigation — Splash handles that after delay)
   Future<void> _checkSavedCredentials() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedToken = prefs.getString('auth_token');
-      
       if (savedToken != null && savedToken.isNotEmpty) {
         authToken.value = savedToken;
         driverId.value = prefs.getInt('driver_id') ?? 0;
@@ -42,34 +39,24 @@ class LoginController extends GetxController {
     }
   }
 
-  /// Login function
   Future<void> login() async {
     if (isLoading.value) return;
-
     try {
       isLoading.value = true;
       errorMessage.value = '';
 
-      // Call API
       final response = await _apiService.login(
         username: email.value.trim(),
         password: password.value.trim(),
       );
 
       if (response.success) {
-        // Save token and user data
         authToken.value = response.token;
         driverId.value = response.driver.id;
         driverName.value = response.driver.name;
         driverPhone.value = response.driver.phone;
-
-        // Persist to SharedPreferences
         await _saveCredentials(response);
-
-        // Navigate to home
         Get.offAllNamed(AppRoutes.home);
-        
-        // Show success message
         Get.snackbar(
           'Success',
           'Welcome back, ${response.driver.name}!',
@@ -89,7 +76,6 @@ class LoginController extends GetxController {
     }
   }
 
-  /// Save credentials to SharedPreferences
   Future<void> _saveCredentials(dynamic response) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -102,32 +88,64 @@ class LoginController extends GetxController {
     }
   }
 
-  /// Logout function
+  /// Called by any controller when the API returns 401 (token invalidated
+  /// because the driver logged in on another device).
+  /// Clears local session and redirects to login with a message.
+  Future<void> forceLogout() async {
+    // Clear location tracking
+    try {
+      await Get.find<LocationUpdateService>().stop();
+    } catch (_) {}
+
+    // Clear persisted data
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+    } catch (_) {}
+
+    // Clear in-memory state
+    email.value = '';
+    password.value = '';
+    authToken.value = '';
+    driverId.value = 0;
+    driverName.value = '';
+    driverPhone.value = '';
+    errorMessage.value = '';
+
+    // Navigate to login
+    Get.offAllNamed(AppRoutes.login);
+
+    Get.snackbar(
+      'Logged Out',
+      'Your account was signed in on another device.',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.orange.shade100,
+      colorText: Colors.orange.shade900,
+      duration: const Duration(seconds: 4),
+      icon: const Icon(Icons.devices, color: Colors.orange),
+    );
+  }
+
+  /// Manual logout (user-initiated)
   Future<void> logout() async {
     try {
       isLoading.value = true;
-      
-      // Stop tracking (e.g., on logout)
+
       try {
         await Get.find<LocationUpdateService>().stop();
       } catch (_) {}
 
-      // Call logout API if user has a token
       if (authToken.value.isNotEmpty) {
         try {
           await _apiService.logout(token: authToken.value);
         } on ApiException catch (e) {
-          // Log the error but continue with local logout
           print('Logout API error: ${e.message}');
-          // Still proceed with local cleanup even if API call fails
         }
       }
 
-      // Clear SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
-      
-      // Clear observable values
+
       email.value = '';
       password.value = '';
       authToken.value = '';
@@ -135,11 +153,9 @@ class LoginController extends GetxController {
       driverName.value = '';
       driverPhone.value = '';
       errorMessage.value = '';
-      
-      // Navigate to login
+
       Get.offAllNamed(AppRoutes.login);
-      
-      // Show logout message
+
       Get.snackbar(
         'Logged Out',
         'You have been successfully logged out',
@@ -148,13 +164,11 @@ class LoginController extends GetxController {
       );
     } catch (e) {
       print('Error during logout: $e');
-      // Even if there's an error, try to navigate to login
       Get.offAllNamed(AppRoutes.login);
     } finally {
       isLoading.value = false;
     }
   }
 
-  /// Check if user is authenticated
   bool get isAuthenticated => authToken.value.isNotEmpty;
 }

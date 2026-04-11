@@ -59,6 +59,10 @@ class ProfileController extends GetxController {
         throw Exception('Failed to load profile');
       }
     } on ApiException catch (e) {
+      if (e.isUnauthorized) {
+        _loginController.forceLogout();
+        return;
+      }
       errorMessage.value = e.message;
       // Fallback to LoginController data if available
       _loadFromLoginController();

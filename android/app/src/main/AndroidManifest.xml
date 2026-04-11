@@ -16,7 +16,7 @@
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     
     <application
-        android:label="limo_guy"
+        android:label="mayfair_driver"
         android:name=".Application"
         android:icon="@mipmap/ic_launcher">
         <activity

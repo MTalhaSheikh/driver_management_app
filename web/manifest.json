@@ -1,6 +1,6 @@
 {
-    "name": "limo_guy",
-    "short_name": "limo_guy",
+    "name": "mayfair_driver",
+    "short_name": "mayfair_driver",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
