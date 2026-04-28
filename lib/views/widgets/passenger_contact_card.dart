@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/app_colors.dart';
 import '../../core/app_theme.dart';
+import 'pickup_sign_screen.dart';
 
 class PassengerContactCard extends StatelessWidget {
   final String name;
@@ -42,7 +43,7 @@ class PassengerContactCard extends StatelessWidget {
               border: Border.all(color: AppColors.portalOlive, width: 2),
               color: const Color(0xFFE5E7EB),
             ),
-            child: const Icon(Icons.person, color: Colors.black54, size: 20,),
+            child: const Icon(Icons.person, color: Colors.black54, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -55,8 +56,19 @@ class PassengerContactCard extends StatelessWidget {
               ],
             ),
           ),
-          // _IconButton(icon: Icons.chat_bubble_outline, onTap: onChat),
-          // const SizedBox(width: 10),
+          // Pickup sign button
+          _IconButton(
+            icon: Icons.contact_page_outlined,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => PickupSignScreen(passengerName: name),
+                  fullscreenDialog: true,
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
           _IconButton(icon: Icons.call_outlined, onTap: onCall),
         ],
       ),
@@ -82,9 +94,8 @@ class _IconButton extends StatelessWidget {
           color: Color(0xFFF3F4F6),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: AppColors.textPrimary, size: 20,),
+        child: Icon(icon, color: AppColors.textPrimary, size: 20),
       ),
     );
   }
 }
-

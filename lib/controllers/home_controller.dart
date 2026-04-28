@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -28,6 +29,9 @@ class HomeController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
 
+  // Background polling timer (silent 15-second refresh)
+  Timer? _pollTimer;
+
   List<String> get availableFilters {
     if (section.value == TripSection.upcoming) {
       return const ['All', 'In Progress', 'Pending'];
@@ -42,6 +46,14 @@ class HomeController extends GetxController {
     _loadTrips();
     // Start tracking (e.g., after login) when app is in foreground
     _startLocationTracking();
+    // Silent background polling every 15 seconds
+    _startPolling();
+  }
+
+  @override
+  void onClose() {
+    _pollTimer?.cancel();
+    super.onClose();
   }
 
   /// Start location tracking after login / when reaching home
@@ -49,6 +61,35 @@ class HomeController extends GetxController {
     try {
       await Get.find<LocationUpdateService>().start();
     } catch (_) {}
+  }
+
+  /// Start 15-second background polling — silently updates list without spinner
+  void _startPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      _silentRefresh();
+    });
+  }
+
+  /// Silently fetch trips and update the list without showing a loading indicator
+  Future<void> _silentRefresh() async {
+    try {
+      final token = _loginController.authToken.value;
+      if (token.isEmpty) return;
+
+      final tripsResponse = await _apiService.getTrips(token: token);
+      if (tripsResponse.success) {
+        trips.value = tripsResponse.trips;
+      }
+    } on ApiException catch (e) {
+      if (e.isUnauthorized) {
+        _pollTimer?.cancel();
+        _loginController.forceLogout();
+      }
+      // Silently ignore other errors — next poll will retry
+    } catch (_) {
+      // Network hiccup — silently ignore
+    }
   }
 
   /// Load driver name from LoginController
